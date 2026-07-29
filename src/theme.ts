@@ -39,10 +39,10 @@ const config = defineConfig({
     },
     semanticTokens: {
       colors: {
-        bg: { value: { _light: '#ffffff', _dark: '#000000' } },
-        'bg.subtle': { value: { _light: '#f5f5f5', _dark: '#121212' } },
-        'bg.muted': { value: { _light: '#ebebeb', _dark: '#1f1f1f' } },
-        'bg.panel': { value: { _light: '#ffffff', _dark: '#1a1a1a' } },
+        bg: { value: { _light: '#ffffff', _dark: '#08080f' } },
+        'bg.subtle': { value: { _light: '#f5f5f5', _dark: '#0e0e1a' } },
+        'bg.muted': { value: { _light: '#ebebeb', _dark: '#14142a' } },
+        'bg.panel': { value: { _light: '#ffffff', _dark: 'rgba(18,18,32,0.72)' } },
         fg: { value: { _light: '#0a0a0a', _dark: '#f5f5f5' } },
         'fg.muted': { value: { _light: '#545454', _dark: '#8a8a8a' } },
         'fg.subtle': { value: { _light: '#767676', _dark: '#5e5e5e' } },
@@ -79,6 +79,30 @@ const config = defineConfig({
         borderWidth: '1px',
         borderColor: 'border',
         borderRadius: 'xl'
+      },
+      'glass': {
+        bg: 'rgba(255,255,255,0.04)',
+        backdropFilter: 'blur(18px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(18px) saturate(160%)',
+        borderWidth: '1px',
+        borderColor: 'rgba(255,255,255,0.08)',
+        borderRadius: 'xl'
+      },
+      'glass.sidebar': {
+        bg: 'rgba(12,12,24,0.68)',
+        backdropFilter: 'blur(28px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+        borderRightWidth: '1px',
+        borderRightColor: 'rgba(255,255,255,0.06)'
+      },
+      'glass.card': {
+        bg: 'rgba(255,255,255,0.04)',
+        backdropFilter: 'blur(16px) saturate(150%)',
+        WebkitBackdropFilter: 'blur(16px) saturate(150%)',
+        borderWidth: '1px',
+        borderColor: 'rgba(255,255,255,0.07)',
+        borderRadius: 'xl',
+        boxShadow: '0 4px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)'
       }
     },
     textStyles: {

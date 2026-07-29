@@ -58,9 +58,59 @@ const Layout = () => {
   const isLive = location.pathname === '/live'
 
   return (
-    <Flex h="100vh" overflow="hidden">
+    <Flex h="100vh" overflow="hidden" bg="bg" position="relative">
+      {/* Background gradient orbs */}
+      <Box position="fixed" inset={0} zIndex={0} pointerEvents="none" overflow="hidden">
+        {/* Red orb — top right */}
+        <Box
+          position="absolute"
+          top="-15%"
+          right="-8%"
+          w="55vw"
+          h="55vw"
+          borderRadius="full"
+          background="radial-gradient(circle, rgba(238,29,82,0.22) 0%, transparent 65%)"
+          style={{ filter: 'blur(72px)' }}
+        />
+        {/* Cyan orb — bottom left */}
+        <Box
+          position="absolute"
+          bottom="-20%"
+          left="-5%"
+          w="50vw"
+          h="50vw"
+          borderRadius="full"
+          background="radial-gradient(circle, rgba(105,201,208,0.14) 0%, transparent 65%)"
+          style={{ filter: 'blur(90px)' }}
+        />
+        {/* Faint red center accent */}
+        <Box
+          position="absolute"
+          top="40%"
+          left="30%"
+          w="35vw"
+          h="35vw"
+          borderRadius="full"
+          background="radial-gradient(circle, rgba(238,29,82,0.05) 0%, transparent 60%)"
+          style={{ filter: 'blur(60px)' }}
+        />
+      </Box>
+
       {/* Left Sidebar */}
-      <Flex as="nav" direction="column" align="center" w={SIDEBAR_W} flexShrink={0} h="full" bg="bg" py={4} px={3} gap={0}>
+      <Flex
+        as="nav"
+        direction="column"
+        align="center"
+        w={SIDEBAR_W}
+        flexShrink={0}
+        h="full"
+        layerStyle="glass.sidebar"
+        py={4}
+        px={3}
+        gap={0}
+        zIndex={1}
+        position="relative"
+      >
         {/* macOS traffic light drag zone */}
         <Box w="full" h="28px" flexShrink={0} mt={-4} style={dragStyle} />
         {/* Logo - black hole */}
@@ -111,7 +161,7 @@ const Layout = () => {
       </Flex>
 
       {/* Main content */}
-      <Box flex={1} overflow="hidden" bg="bg" position="relative">
+      <Box flex={1} overflow="hidden" bg="transparent" position="relative" zIndex={1}>
         {navigation.state === 'loading' && (
           <Box
             position="absolute"
