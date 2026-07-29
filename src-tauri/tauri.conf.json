@@ -23,8 +23,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; connect-src 'self' https://live.douyin.com https://*.douyin.com wss://*.douyin.com ws: wss:; img-src 'self' https://*.douyin.com https://*.douyinstatic.com https://*.douyincdn.com https://*.douyinpic.com data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
-      "dangerouslyDisableAssetCspModification": ["style-src"]
+      "csp": "default-src 'self'; connect-src 'self' https://live.douyin.com https://*.douyin.com wss://*.douyin.com ws: wss:; img-src 'self' https://*.douyin.com https://*.douyinstatic.com https://*.douyincdn.com https://*.douyinpic.com data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
     }
   },
   "plugins": {

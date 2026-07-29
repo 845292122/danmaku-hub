@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@chakra-ui/react": "^3.36.1",
+    "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-sql": "^2",
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@tauri-apps/cli": "^2",
     "@types/node": "^26.1.1",
     "@types/pako": "^2.0.3",
     "@types/react": "^19.1.8",
@@ -42,7 +44,6 @@
     "globals": "^17.7.0",
     "prettier": "^3.9.6",
     "typescript": "~5.8.3",
-    "vite": "^7.0.4",
-    "@tauri-apps/cli": "^2"
+    "vite": "^7.0.4"
   }
 }
