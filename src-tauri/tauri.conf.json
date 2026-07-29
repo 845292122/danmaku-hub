@@ -26,6 +26,14 @@
       "csp": "default-src 'self'; connect-src 'self' https://live.douyin.com https://*.douyin.com wss://*.douyin.com ws: wss:; img-src 'self' https://*.douyin.com https://*.douyinstatic.com https://*.douyincdn.com https://*.douyinpic.com data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
     }
   },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/845292122/dy-danmaku/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQyN0QzRTgxRUE5RUREM0IKUldRNzNaN3FnVDU5UXZWZ3V0ZlhKRFFiT05QK0pKWGFiMEdvaytVQnUyK0pncUtzQnZYU3R6SlcK"
+    }
+  },
   "bundle": {
     "active": true,
     "targets": "all",
