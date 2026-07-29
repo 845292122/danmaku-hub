@@ -2,6 +2,7 @@ import { Box, Flex, HStack, Text } from '@chakra-ui/react'
 import { RefreshCw } from 'lucide-react'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DatePicker from '~/components/DatePicker'
+import { cspNonce } from '~/utils/cspNonce'
 import {
   getOrdersBySessions,
   getSessionsByDate,
@@ -177,7 +178,7 @@ export default function Orders() {
   return (
     <>
       {/* DatePicker global CSS */}
-      <style>{DATE_PICKER_CSS}</style>
+      <style nonce={cspNonce}>{DATE_PICKER_CSS}</style>
 
       <Flex h="100vh" direction="column" overflow="hidden">
 
