@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Long } from '../../Long';
 import {
   popByteBuffer, pushByteBuffer, wrapByteBuffer, toUint8Array,

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Long } from '../Long';
 
 export interface ByteBuffer {

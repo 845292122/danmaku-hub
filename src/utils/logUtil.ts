@@ -172,15 +172,6 @@ class Logger {
   }
 
   /**
-   * 记录到文件
-   * @param level
-   * @param data
-   */
-  private _printFile(level: LogLevel, data: LogData) {
-    // 记录到日志文件
-  }
-
-  /**
    * 格式化日期
    * @param date {Date} 日期
    * @param format {string} 格式化字符串
@@ -255,13 +246,6 @@ class Logger {
   }
 }
 
-function test() {
-  const MLog = new Logger({ prefix: 'danmaku-hub' });
-  MLog.debug('debug message');
-  MLog.info('info message');
-  MLog.warn('warning message');
-  MLog.error('error message');
-}
 
 /**
  * 输出标签

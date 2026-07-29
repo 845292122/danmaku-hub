@@ -115,7 +115,8 @@ class FileSaver {
       // 如果不是强制创建新文件，可以选择已有文件
       if (options.existStrategy !== 'new') {
         try {
-          [fileHandle] = await window.showOpenFilePicker({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          [fileHandle] = await (window as any).showOpenFilePicker({
             types: [
               {
                 description: options.description,
@@ -125,7 +126,7 @@ class FileSaver {
           });
 
           // 如果策略为提示且用户拒绝覆盖，则取消操作
-          if (options.existStrategy === 'prompt' && !confirm(`文件 "${fileHandle.name}" 已存在，是否覆盖？`)) {
+          if (options.existStrategy === 'prompt' && !confirm(`文件 "${fileHandle!.name}" 已存在，是否覆盖？`)) {
             return {
               success: false,
               fileHandle: null,
@@ -139,7 +140,8 @@ class FileSaver {
 
       // 没有文件句柄时，新建文件
       if (!fileHandle) {
-        fileHandle = await window.showSaveFilePicker({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        fileHandle = await (window as any).showSaveFilePicker({
           suggestedName: fileName,
           types: [
             {
@@ -150,7 +152,7 @@ class FileSaver {
         });
       }
       // 获取可写流
-      const writable = await fileHandle.createWritable();
+      const writable = await fileHandle!.createWritable();
       // 内容转换成 Blob
       const blob = this.normalizeContentToBlob(content, options.mimeType);
       // 写入内容

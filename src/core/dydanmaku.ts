@@ -444,7 +444,7 @@ export class DyDanmaku {
   // 即 如果 10000 ms 内都没接收到新消息，证明消息接收出错
   private downgradePingCount: number = 2;
 
-  private pingTimer: number | undefined = void 0;
+  private pingTimer: ReturnType<typeof setTimeout> | undefined = void 0;
 
   // 上次接收时间
   private lastReceiveTime: number;
@@ -465,7 +465,6 @@ export class DyDanmaku {
   // 是否需要重连
   private shouldReconnect: boolean;
   // 正在重连中
-  private isReconnecting: boolean;
   // 是否主动关闭（忽略关闭前触发的 ws error 事件）
   private _intentionalClose: boolean = false;
 
@@ -514,7 +513,6 @@ export class DyDanmaku {
     this.imInfo = {};
     this.status = RoomStatus.END;
     this.emitter = new Emitter<DyDanmakuEvent>();
-    this.isReconnecting = false;
   }
 
   /**
@@ -730,7 +728,6 @@ export class DyDanmaku {
     if (this.reconnectCount > this.maxReconnectCount) {
       CLog.error("已超过最大重连次数，请稍后重试");
       this.wsRoomStatus = WSRoomStatus.CLOSED;
-      this.isReconnecting = false;
       this.emitter.emit("error", Error("已超过最大重连次数，请稍后重试"));
       this.emitter.emit(
         "close",
@@ -741,7 +738,6 @@ export class DyDanmaku {
     }
     this.wsRoomStatus = WSRoomStatus.RECONNECTING;
     this.emitter.emit("reconnecting", this.reconnectCount);
-    this.isReconnecting = true;
     this._connect(opts);
   }
 
@@ -1146,7 +1142,6 @@ export class DyDanmaku {
       msg: "CLOSE_NO_STATUS",
     };
     this.ws = void 0;
-    this.isReconnecting = false;
     this._intentionalClose = false;
     // 保留 _decodersPromise：ES 模块本身已缓存，重连后可直接复用，避免再次触发 import
   }
@@ -1155,7 +1150,6 @@ export class DyDanmaku {
   private _afterOpen() {
     this.state = !0;
     this.wsRoomStatus = WSRoomStatus.CONNECTED;
-    this.isReconnecting = false;
     this.reconnectCount = 0;
     // 预加载消息解码器
     this._ensureDecoders().catch((err) => {

@@ -67,7 +67,8 @@ export class JsonlRecorder<T> {
     }
 
     const mimeType = options.mimeType || 'application/x-ndjson';
-    const fileHandle = await window.showSaveFilePicker({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fileHandle = await (window as any).showSaveFilePicker({
       suggestedName,
       types: [
         {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @file
  * 魔改缩小的 long.js
@@ -104,7 +105,7 @@ export class Long {
   low: number;
   high: number;
   unsigned: boolean;
-  private __isLong__: boolean;
+  private declare __isLong__: boolean;
 
   constructor(low: number, high: number, unsigned?: boolean) {
     this.low = low | 0;

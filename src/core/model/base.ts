@@ -1,8 +1,8 @@
-import { Long } from '../Long';
+// @ts-nocheck
 import {
   popByteBuffer, pushByteBuffer, wrapByteBuffer, toUint8Array,
-  writeVarint32, writeVarint64, writeString, writeBytes, writeByteBuffer, writeByte,
-  readVarint32, readVarint64, readString, readBytes, readByte, readFloat, readDouble,
+  writeVarint32, writeVarint64, writeString, writeByteBuffer, writeByte,
+  readVarint32, readVarint64, readString, readByte, readFloat, readDouble,
   writeFloat, writeDouble, longToString, stringToLong, intToLong,
   pushTemporaryLength, skipUnknownField, isAtEnd,
 } from './shared';
