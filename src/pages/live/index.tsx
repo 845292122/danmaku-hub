@@ -28,7 +28,8 @@ import type { DyMessage } from '~/core/dydanmaku'
 import { matchMessage } from '~/core/matchEngine'
 import type { FormatKey } from '~/core/matchEngine'
 import { usePrinterSettings } from '~/store/printerSettings'
-import { createSession, closeSession, insertOrder } from '~/core/orderStore'
+import { createSession, closeSession, insertOrder, updatePrintStatus } from '~/core/orderStore'
+import { execPrintOrder, isPrinterConfigured } from '~/core/printerStore'
 import { verifyRoomNum } from '~/utils/verifyUtil'
 
 const toaster = createToaster({ placement: 'top' })
@@ -129,6 +130,8 @@ type CommentRow = {
   time: string
   result: MatchResult
   printStatus: PrintStatus
+  orderId?: number
+  matchedAt?: number
 }
 
 interface MatchConfig {
@@ -148,7 +151,7 @@ const PRINT_STATUS_MAP: Record<PrintStatus, { label: string }> = {
 
 // ── TableVirtuoso slot components (stable, outside component) ─────────────────
 
-type VirtuosoContext = { newestSeq: number | null }
+type VirtuosoContext = { newestSeq: number | null; onReprint: ((row: CommentRow) => void) | null }
 type VirtuosoTableProps = React.TableHTMLAttributes<HTMLTableElement> & { style?: React.CSSProperties }
 type VirtuosoRowProps = React.HTMLAttributes<HTMLTableRowElement> & { item: CommentRow; context?: VirtuosoContext }
 
@@ -232,7 +235,8 @@ const PRINT_STATUS_COLOR: Record<PrintStatus, string> = {
   failed: '#e95464'
 }
 
-const TABLE_ITEM_CONTENT = (_index: number, row: CommentRow) => {
+const TABLE_ITEM_CONTENT = (_index: number, row: CommentRow, context?: VirtuosoContext) => {
+  const canReprint = row.result === 'matched'
   const isMatched = row.result === 'matched'
   return (
     <>
@@ -306,15 +310,16 @@ const TABLE_ITEM_CONTENT = (_index: number, row: CommentRow) => {
           h="24px"
           px="8px"
           fontSize="11px"
-          color="rgba(255,255,255,0.4)"
+          color={canReprint ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.15)'}
           borderWidth="1px"
-          borderColor="rgba(255,255,255,0.1)"
+          borderColor={canReprint ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)'}
           borderRadius="md"
           bg="transparent"
-          cursor="pointer"
+          cursor={canReprint ? 'pointer' : 'default'}
           whiteSpace="nowrap"
           transition="all 0.15s"
-          _hover={{ borderColor: 'rgba(255,255,255,0.28)', color: 'rgba(255,255,255,0.82)', bg: 'rgba(255,255,255,0.05)' }}
+          _hover={canReprint ? { borderColor: 'rgba(255,255,255,0.28)', color: 'rgba(255,255,255,0.82)', bg: 'rgba(255,255,255,0.05)' } : {}}
+          onClick={() => canReprint && context?.onReprint?.(row)}
         >
           重打
         </Box>
@@ -538,7 +543,8 @@ function ProductPanel({
   seqMode,
   onSeqModeChange,
   onToggle,
-  onMatchConfigChange
+  onMatchConfigChange,
+  onProductNameChange,
 }: {
   isWorking: boolean
   isConnected: boolean
@@ -547,6 +553,7 @@ function ProductPanel({
   onSeqModeChange: (mode: SeqMode) => void
   onToggle: () => void
   onMatchConfigChange: (cfg: MatchConfig) => void
+  onProductNameChange: (name: string) => void
 }) {
   const disabled = isWorking
 
@@ -613,7 +620,7 @@ function ProductPanel({
           {/* 商品名称 */}
           <VStack gap={2.5} align="stretch" px={4} py={4}>
             <SectionLabel>商品名称</SectionLabel>
-            <PanelTextInput value={productName} onChange={setProductName} placeholder="输入本轮商品名称" disabled={disabled} />
+            <PanelTextInput value={productName} onChange={v => { setProductName(v); onProductNameChange(v) }} placeholder="输入本轮商品名称" disabled={disabled} />
           </VStack>
 
           <Box h="1px" bg="rgba(255,255,255,0.05)" />
@@ -951,7 +958,7 @@ export default function Live() {
   const [matchFilter, setMatchFilter] = useState<'all' | MatchResult>('all')
   const [printFilter, setPrintFilter] = useState<'all' | PrintStatus>('all')
   const [connectStatus, setConnectStatus] = useState<0 | 1 | 2 | 3>(0)
-  const [printerStatus] = useState<0 | 1 | 2>(0)
+  const [printerStatus, setPrinterStatus] = useState<0 | 1 | 2>(0)
   const [totalReceived, setTotalReceived] = useState(0)
   const [totalMatched, setTotalMatched] = useState(0)
   const [totalPrinted, setTotalPrinted] = useState(0)
@@ -966,6 +973,8 @@ export default function Live() {
   const isPrintingRef = useRef(false)
   const sessionIdRef = useRef<number | null>(null)
   const orderSeqRef = useRef(0)
+  const printerSettingsRef = useRef(printerSettings)
+  const productNameRef = useRef('')
   const roomIdRef = useRef(roomId)
   roomIdRef.current = roomId
   const liveInfoRef = useRef(liveInfo)
@@ -979,10 +988,9 @@ export default function Live() {
   const timerSecondsRef = useRef(0)
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Keep isPrintingRef in sync with state
-  useEffect(() => {
-    isPrintingRef.current = isPrinting
-  }, [isPrinting])
+  // Keep refs in sync with state
+  useEffect(() => { isPrintingRef.current = isPrinting }, [isPrinting])
+  useEffect(() => { printerSettingsRef.current = printerSettings }, [printerSettings])
 
   const startTimer = useCallback(() => {
     timerSecondsRef.current = 0
@@ -1031,15 +1039,18 @@ export default function Live() {
         }
 
         const seq = ++seqRef.current
+        const matchedAt = Date.now()
+        const msgId = msg.id
         toAppend.push({
           seq,
-          msgId: msg.id,
+          msgId,
           nickname,
           raw: content,
           matched: result === 'matched' ? matchStr : '—',
           time,
           result,
-          printStatus: 'pending'
+          printStatus: 'pending',
+          matchedAt: result === 'matched' ? matchedAt : undefined,
         })
 
         if (result === 'matched' && sessionIdRef.current !== null) {
@@ -1051,7 +1062,32 @@ export default function Live() {
             userName: nickname,
             content,
             matchStr,
-            matchedAt: Date.now(),
+            matchedAt,
+          }).then(async (orderId) => {
+            // 回填 orderId 到对应行
+            setRows(prev => prev.map(r => r.msgId === msgId ? { ...r, orderId } : r))
+
+            const s = printerSettingsRef.current
+            if (s.printerEnabled && isPrinterConfigured(s)) {
+              try {
+                await execPrintOrder({
+                  product: productNameRef.current,
+                  seq: orderSeq,
+                  user_name: nickname,
+                  content,
+                  match_str: matchStr,
+                  matched_at: matchedAt,
+                }, s)
+                await updatePrintStatus(orderId, 'printed')
+                setRows(prev => prev.map(r => r.orderId === orderId ? { ...r, printStatus: 'printed' } : r))
+                setTotalPrinted(n => n + 1)
+                setPrinterStatus(1)
+              } catch {
+                setPrinterStatus(2)
+                setTotalPrintError(n => n + 1)
+                // 保留 pending，不修改 DB 状态
+              }
+            }
           }).catch((err: unknown) => {
             console.error('[orderStore] insertOrder failed:', err)
           })
@@ -1199,7 +1235,28 @@ export default function Live() {
     })
   }, [rows, matchFilter, printFilter])
 
-  const virtuosoContext = useMemo<VirtuosoContext>(() => ({ newestSeq }), [newestSeq])
+  const handleReprint = useCallback(async (row: CommentRow) => {
+    if (row.result !== 'matched' || !row.orderId) return
+    const s = printerSettingsRef.current
+    if (!isPrinterConfigured(s)) return
+    try {
+      await execPrintOrder({
+        product: productNameRef.current,
+        seq: row.seq,
+        user_name: row.nickname,
+        content: row.raw,
+        match_str: row.matched,
+        matched_at: row.matchedAt ?? Date.now(),
+      }, s)
+      await updatePrintStatus(row.orderId, 'printed')
+      setRows(prev => prev.map(r => r.orderId === row.orderId ? { ...r, printStatus: 'printed' } : r))
+      setPrinterStatus(1)
+    } catch {
+      setPrinterStatus(2)
+    }
+  }, [])
+
+  const virtuosoContext = useMemo<VirtuosoContext>(() => ({ newestSeq, onReprint: handleReprint }), [newestSeq, handleReprint])
 
   return (
     <Flex direction="column" p={4} gap={3} h="full">
@@ -1447,9 +1504,13 @@ export default function Live() {
           totalMatched={totalMatched}
           seqMode={seqMode}
           onSeqModeChange={setSeqMode}
+          onProductNameChange={name => { productNameRef.current = name }}
           onToggle={() => {
             if (!isPrinting) {
               if (seqMode === 'round') orderSeqRef.current = 0
+              setTotalMatched(0)
+              setTotalPrinted(0)
+              setTotalPrintError(0)
               createSession(roomIdRef.current, liveInfoRef.current?.nickname ?? '')
                 .then(id => {
                   sessionIdRef.current = id

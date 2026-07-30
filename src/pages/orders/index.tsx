@@ -10,6 +10,8 @@ import {
   type OrderRow,
   type SessionRow,
 } from '~/core/orderStore'
+import { execPrintOrder, isPrinterConfigured } from '~/core/printerStore'
+import { getPrinterSettings } from '~/store/printerSettings'
 
 // ── Constants ─────────────────────────────────────────────────
 
@@ -143,15 +145,37 @@ export default function Orders() {
   const allOrdersRef = useRef(allOrders)
   allOrdersRef.current = allOrders
 
+  const sessionsRef = useRef(sessions)
+  sessionsRef.current = sessions
+
+  const getProduct = (sessionId: number) =>
+    sessionsRef.current.find(s => s.id === sessionId)?.product ?? ''
+
   const reprint = useCallback(async (order: OrderRow) => {
     if (reprintingIds.has(order.id)) return
     setReprintingIds(prev => new Set([...prev, order.id]))
     try {
+      const s = getPrinterSettings()
+      if (isPrinterConfigured(s)) {
+        await execPrintOrder({
+          product: getProduct(order.session_id),
+          seq: order.seq,
+          user_name: order.user_name,
+          content: order.content,
+          match_str: order.match_str,
+          matched_at: order.matched_at,
+        }, s)
+      }
       await updatePrintStatus(order.id, 'printed')
       setAllOrders(prev => prev.map(o =>
         o.id === order.id ? { ...o, print_status: 'printed', printed_at: Date.now() } : o
       ))
-    } catch { /* ignore */ } finally {
+    } catch {
+      await updatePrintStatus(order.id, 'failed').catch(() => {})
+      setAllOrders(prev => prev.map(o =>
+        o.id === order.id ? { ...o, print_status: 'failed' } : o
+      ))
+    } finally {
       setReprintingIds(prev => { const s = new Set(prev); s.delete(order.id); return s })
     }
   }, [reprintingIds])
@@ -161,14 +185,32 @@ export default function Orders() {
     const pending = sessionOrders.filter(o => o.print_status === 'pending')
     if (!pending.length) return
     setBatchReprinting(true)
+    const s = getPrinterSettings()
     try {
       for (const o of pending) {
-        await updatePrintStatus(o.id, 'printed')
-        setAllOrders(prev => prev.map(r =>
-          r.id === o.id ? { ...r, print_status: 'printed', printed_at: Date.now() } : r
-        ))
+        try {
+          if (isPrinterConfigured(s)) {
+            await execPrintOrder({
+              product: '',
+              seq: o.seq,
+              user_name: o.user_name,
+              content: o.content,
+              match_str: o.match_str,
+              matched_at: o.matched_at,
+            }, s)
+          }
+          await updatePrintStatus(o.id, 'printed')
+          setAllOrders(prev => prev.map(r =>
+            r.id === o.id ? { ...r, print_status: 'printed', printed_at: Date.now() } : r
+          ))
+        } catch {
+          await updatePrintStatus(o.id, 'failed').catch(() => {})
+          setAllOrders(prev => prev.map(r =>
+            r.id === o.id ? { ...r, print_status: 'failed' } : r
+          ))
+        }
       }
-    } catch { /* ignore */ } finally {
+    } finally {
       setBatchReprinting(false)
     }
   }, [batchReprinting, sessionOrders])

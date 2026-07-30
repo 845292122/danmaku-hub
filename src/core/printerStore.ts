@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core'
 import type { PrintTemplate } from '~/core/templateStore'
+import type { PrinterSettings } from '~/store/printerSettings'
 
 export interface PrinterConfig {
   mode: 'serial' | 'network'
@@ -57,4 +58,25 @@ export function printerPrintOrder(
   template: RustTemplate,
 ): Promise<void> {
   return invoke<void>('printer_print_order', { config, order, template })
+}
+
+export function buildPrinterConfig(s: PrinterSettings): PrinterConfig {
+  return {
+    mode: s.printerMode,
+    serial_port: s.printerPort,
+    baud_rate: s.printerBaud,
+    net_host: s.printerHost,
+    net_port: s.printerNetPort,
+    encoding: s.printerEncoding,
+  }
+}
+
+export function isPrinterConfigured(s: PrinterSettings): boolean {
+  return s.printerMode === 'serial' ? !!s.printerPort : !!s.printerHost
+}
+
+export async function execPrintOrder(order: PrintOrderData, s: PrinterSettings): Promise<void> {
+  const template = s.printTemplates.find(t => t.id === s.activeTemplateId) ?? s.printTemplates[0]
+  if (!template) throw new Error('no print template configured')
+  return printerPrintOrder(buildPrinterConfig(s), order, templateToRust(template))
 }

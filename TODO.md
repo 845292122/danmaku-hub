@@ -6,7 +6,7 @@
 
 ## 高优先级 Bug
 
-### 1. 打印流程完全断路
+### ~~1. 打印流程完全断路~~ ✅ 已修复
 - **文件**：`src/pages/live/index.tsx`
 - **问题**：`printerPrintOrder` 定义了但从未被调用。弹幕匹配后只写了数据库，没有发送到打印机。
 
@@ -14,15 +14,15 @@
 - **文件**：`src/pages/live/index.tsx`
 - **问题**：`ProductPanel` 中"扣中"统计数字硬编码为 `42`，不是真实计数。
 
-### 3. 打印机状态永远显示未连接
+### ~~3. 打印机状态永远显示未连接~~ ✅ 已修复
 - **文件**：`src/pages/live/index.tsx`
 - **问题**：`printerStatus` 的 setter 被丢弃，`totalPrinted / totalPrintError` 永远是 0，状态栏始终显示"打印 0 / 异常 0"。
 
-### 4. 直播列表"重打"按钮无效
+### ~~4. 直播列表"重打"按钮无效~~ ✅ 已修复
 - **文件**：`src/pages/live/index.tsx`
 - **问题**：`TABLE_ITEM_CONTENT` 是普通函数而非组件，没有状态和回调，"重打"按钮点击无任何响应。
 
-### 5. 补打按钮不实际打印
+### ~~5. 补打按钮不实际打印~~ ✅ 已修复
 - **文件**：`src/pages/orders/index.tsx`
 - **问题**："补打"和"批量补打"只调用 `updatePrintStatus` 改数据库状态，未调用 `printerPrintOrder`，不会向打印机发送任何指令。
 
@@ -38,7 +38,7 @@
 - **文件**：`src/pages/live/index.tsx`
 - **问题**：`seqMode` 有 UI 切换但从未在业务逻辑中被读取，两种模式行为完全相同。
 
-### 8. "自动打印"开关存储但未生效
+### ~~8. "自动打印"开关存储但未生效~~ ✅ 已修复
 - **文件**：`src/pages/print/index.tsx`、`src/store/printerSettings.ts`
 - **问题**：`printerEnabled` 正确持久化，但没有任何调用点在触发打印前读取此标志。
 
@@ -62,8 +62,8 @@
 - **文件**：`src/core/request.ts`
 - **问题**：`getLiveInfo` 在 `parseLiveHtml` 返回 null 时重新请求完全相同的 URL，结果必然相同，重试无意义。
 
-### 13. setCookie 使用了 decode 而非 encode
-- **文件**：`src/utils/cookieUtil.ts`
+### ~~13. setCookie 使用了 decode 而非 encode~~ ✅ 已随死代码清理消除
+- **文件**：`src/utils/cookieUtil.ts`（已删除）
 - **问题**：构造 cookie 字符串时调用了 `decodeURIComponent(cookie.value)`，应为 `encodeURIComponent`。含 `=`、`;`、空格等特殊字符的 cookie 值会导致 `URIError` 或 cookie 格式异常。
 
 ---
