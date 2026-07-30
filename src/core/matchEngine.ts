@@ -1,16 +1,7 @@
-import type { DyMessage } from './dydanmaku'
-
 export type FormatKey = 'digits' | 'contains' | 'symbol' | 'letter' | 'four' | 'size' | 'keyword'
 
 export type MatchResult = 'matched' | 'unmatched'
 export type PrintStatus = 'printed' | 'pending' | 'failed'
-
-export interface EnrichedDyMessage extends DyMessage {
-  _seq?: number
-  _matchResult: MatchResult
-  _matchContent: string
-  _printStatus: PrintStatus
-}
 
 export interface MatchOptions {
   formats: Set<FormatKey>

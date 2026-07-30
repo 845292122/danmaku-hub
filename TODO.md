@@ -46,7 +46,7 @@
 - **文件**：`src/pages/analytics/index.tsx`
 - **问题**：页面仅有占位图标和文字"数据分析页面"，无任何图表或数据查询，但导航菜单对用户可见。
 
-### 10. 首页是开发 Demo，留在了生产路由
+### ~~10. 首页是开发 Demo，留在了生产路由~~ ✅ 已修复
 - **文件**：`src/pages/home/index.tsx`
 - **问题**：`/` 路由渲染的是 Chakra UI 组件展示页（"LiveHunter — TikTok 风格组件库"），应在正式发布前替换或移除。
 
@@ -68,16 +68,16 @@
 
 ---
 
-## 死代码（可清理）
+## ~~死代码（可清理）~~ ✅ 全部已清理
 
 | 文件 | 内容 |
 |------|------|
-| `src/store/modules/auth.ts` | `token: '2313'` 调试值持久化到 sessionStorage，应清空 |
-| `src/core/matchEngine.ts` | `EnrichedDyMessage` 接口导出但从未被 import |
-| `src/core/util.ts` | `parseLiveHtml_old` 函数（已被新版本替代） |
-| `src/utils/debugUtil.ts` | 整个文件无任何引用 |
-| `src/core/relay.ts` | 从未被任何页面 import |
-| `src/core/replayer.ts` | 从未被任何页面 import |
-| `src/core/emoji.ts` | 从未被任何页面 import |
-| 多个 utils 文件 | `fileUtil.ts`、`idUtil.ts`、`loashUtil.ts`、`typeUtil.ts`、`cookieUtil.ts`、`commonUtil.ts` 均无引用 |
-| `src/pages/live/index.tsx:143` | `PRINT_STATUS_MAP` 中 `color` 字段从未读取，且与 `PRINT_STATUS_COLOR` 颜色值不一致 |
+| ~~`src/store/modules/auth.ts`~~ | `token: '2313'` → 已清空为 `''` |
+| ~~`src/core/matchEngine.ts`~~ | `EnrichedDyMessage` 接口及多余 import → 已删除 |
+| ~~`src/core/util.ts`~~ | `parseLiveHtml_old` 函数 → 已删除 |
+| ~~`src/utils/debugUtil.ts`~~ | 整个文件 → 已删除 |
+| ~~`src/core/relay.ts`~~ | 整个文件 → 已删除 |
+| ~~`src/core/replayer.ts`~~ | 整个文件 → 已删除 |
+| ~~`src/core/emoji.ts`~~ | 整个文件 → 已删除 |
+| ~~多个 utils 文件~~ | `fileUtil.ts`、`idUtil.ts`、`loashUtil.ts`、`typeUtil.ts`、`cookieUtil.ts`、`commonUtil.ts` → 全部已删除 |
+| ~~`src/pages/live/index.tsx:143`~~ | `PRINT_STATUS_MAP` 中 `color` 字段 → 已移除 |

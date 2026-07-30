@@ -140,10 +140,10 @@ interface MatchConfig {
 
 // ── Display maps ──────────────────────────────────────────────────────────────
 
-const PRINT_STATUS_MAP: Record<PrintStatus, { label: string; color: string }> = {
-  printed: { label: '已打印', color: '#4ade80' },
-  pending: { label: '待打印', color: 'rgba(255,255,255,0.35)' },
-  failed: { label: '打印失败', color: '#f87171' }
+const PRINT_STATUS_MAP: Record<PrintStatus, { label: string }> = {
+  printed: { label: '已打印' },
+  pending: { label: '待打印' },
+  failed: { label: '打印失败' }
 }
 
 // ── TableVirtuoso slot components (stable, outside component) ─────────────────

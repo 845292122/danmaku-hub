@@ -6,7 +6,7 @@ export const useAuthStore = create<AUTH.AuthState>()(
   devtools(
     persist(
       set => ({
-        token: '2313',
+        token: '',
         userInfo: undefined,
         permissions: ['home'],
         setToken: tokenVal => set({ token: tokenVal }),
