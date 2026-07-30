@@ -73,7 +73,7 @@ async function decompressGzip(data: Uint8Array): Promise<Uint8Array> {
   return ungzip(data);
 }
 
-import { fetchUser, getImInfo, getLiveInfo } from "./request";
+import { getImInfo, getLiveInfo } from "./request";
 import { getSignature } from "./signature";
 import { createSocket, getWsBase, type DySocket } from "@/platform/websocket";
 
@@ -1193,7 +1193,6 @@ export class DyDanmaku {
       const info = await getLiveInfo(roomNum);
       this.info = info;
       this.status = info.status;
-      await fetchUser();
       const res = await getImInfo(info.roomId, info.uniqueId);
       this.imInfo = res;
     } catch (err) {

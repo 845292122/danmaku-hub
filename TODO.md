@@ -54,11 +54,11 @@
 
 ## 中优先级 Bug
 
-### 11. fetchUser 失败会中断整个连接
+### ~~11. fetchUser 失败会中断整个连接~~ ✅ 已修复
 - **文件**：`src/core/dydanmaku.ts`
 - **问题**：`fetchUser` 仅用于获取 cookie，但其失败会被 `await` 直接抛出，导致整个 `connect()` 流程报 `CONNECTING_ERROR`，用户无法进入直播间。应在外层加 try/catch 容错。
 
-### 12. 解析失败后重试同一 URL
+### ~~12. 解析失败后重试同一 URL~~ ✅ 已修复
 - **文件**：`src/core/request.ts`
 - **问题**：`getLiveInfo` 在 `parseLiveHtml` 返回 null 时重新请求完全相同的 URL，结果必然相同，重试无意义。
 

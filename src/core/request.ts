@@ -29,12 +29,12 @@ export const getLiveInfo = async function (id: string) {
     const html = await fetchLiveInfo(id);
     const first = parseLiveHtml(html);
     if (first) return first;
-    else {
-      const realHtml = await fetchLiveInfo(id);
-      const second = parseLiveHtml(realHtml);
-      if (second) return second;
-      else throw new Error('Get Live Info Error');
-    }
+    // 第一次解析失败：先刷新 cookie，再重试
+    try { await fetchUser() } catch { /* ignore */ }
+    const realHtml = await fetchLiveInfo(id);
+    const second = parseLiveHtml(realHtml);
+    if (second) return second;
+    throw new Error('Get Live Info Error');
   } catch (err) {
     return Promise.reject(err);
   }
