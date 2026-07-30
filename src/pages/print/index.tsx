@@ -71,6 +71,7 @@ function ToggleGroup<T extends string>({
           opacity={disabled ? 0.5 : 1}
           transition="all 0.12s"
           _hover={disabled ? {} : { bg: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.8)' }}
+          _active={disabled ? {} : { transform: 'scale(0.94)', opacity: 0.8 }}
           onClick={() => !disabled && onChange(opt.value)}
         >
           {opt.label}
@@ -109,7 +110,7 @@ function StyledInput({
       fontSize="13px"
       outline="none"
       _placeholder={{ color: 'rgba(255,255,255,0.2)' }}
-      css={{ '&:focus': { borderColor: 'rgba(255,255,255,0.25)' } }}
+      css={{ '&:focus': { borderColor: 'rgba(255,255,255,0.25)', boxShadow: '0 0 0 3px rgba(238,29,82,0.15)', transition: 'border-color 0.15s ease, box-shadow 0.15s ease' }, transition: 'border-color 0.15s ease, box-shadow 0.15s ease' }}
       {...({
         value,
         placeholder,
@@ -345,6 +346,7 @@ function ConnectionTab() {
               opacity={testStatus === 'loading' ? 0.5 : 1}
               transition="all 0.15s"
               _hover={testStatus === 'loading' ? {} : { bg: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.28)' }}
+              _active={testStatus === 'loading' ? {} : { transform: 'scale(0.94)', opacity: 0.8 }}
               onClick={handleTest}
               >
               {testStatus === 'loading' ? '打印中…' : '测试打印'}
@@ -541,6 +543,7 @@ function FieldRow({
             justifyContent="center"
             transition="all 0.1s"
             _hover={field.visible ? { bg: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.8)' } : {}}
+            _active={field.visible ? { transform: 'scale(0.88)', opacity: 0.8 } : {}}
             onClick={() => field.visible && onSetAlign(a)}
           >
             {ALIGN_LABELS[a]}
@@ -568,6 +571,7 @@ function FieldRow({
         transition="all 0.1s"
         flexShrink={0}
         _hover={field.visible ? { bg: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.8)' } : {}}
+        _active={field.visible ? { transform: 'scale(0.88)', opacity: 0.8 } : {}}
         onClick={() => field.visible && onToggleBold()}
       >
         B
@@ -786,6 +790,7 @@ function TemplateTab() {
             cursor="pointer"
             transition="all 0.12s"
             _hover={{ bg: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.75)' }}
+            _active={{ transform: 'scale(0.96)', opacity: 0.8 }}
             onClick={() => update({ activeTemplateId: tpl.id })}
           >
             <Text
@@ -830,6 +835,7 @@ function TemplateTab() {
           justifyContent="center"
           transition="all 0.12s"
           _hover={{ bg: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.8)' }}
+          _active={{ transform: 'scale(0.9)', opacity: 0.8 }}
           title="新建模板"
           onClick={addTemplate}
         >
@@ -883,6 +889,7 @@ export default function Print() {
               cursor="pointer"
               transition="all 0.12s"
               _hover={{ bg: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.7)' }}
+              _active={{ transform: 'scale(0.94)', opacity: 0.8 }}
               onClick={() => setActiveTab(tab)}
               >
               {tab === 'connection' ? '连接设置' : '模板管理'}

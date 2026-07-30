@@ -102,7 +102,7 @@ const config = defineConfig({
         borderWidth: '1px',
         borderColor: 'rgba(255,255,255,0.07)',
         borderRadius: 'xl',
-        boxShadow: '0 4px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)'
+        boxShadow: '0 2px 8px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.06)'
       }
     },
     textStyles: {
@@ -121,7 +121,7 @@ const config = defineConfig({
           fontWeight: '700',
           transition: 'all 0.15s ease',
           _hover: { transform: 'scale(1.03)' },
-          _active: { transform: 'scale(0.97)' }
+          _active: { transform: 'scale(0.94)', opacity: 0.85 }
         },
         defaultVariants: {
           // @ts-expect-error -- 'brand' is a custom palette not in Chakra's generated ColorPalette type
@@ -142,8 +142,10 @@ const config = defineConfig({
       input: defineRecipe({
         base: {
           rounded: 'xl',
+          transition: 'box-shadow 0.15s ease',
           _focusVisible: {
-            outlineColor: 'brand.focusRing'
+            outlineColor: 'brand.focusRing',
+            boxShadow: '0 0 0 3px rgba(238,29,82,0.18)',
           }
         },
         defaultVariants: {

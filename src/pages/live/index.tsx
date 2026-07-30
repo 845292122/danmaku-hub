@@ -353,8 +353,9 @@ function FilterChip({
       cursor="pointer"
       transition="all 0.15s"
       onClick={onClick}
+      _active={{ transform: 'scale(0.94)', opacity: 0.8 }}
       {...(active
-        ? activeStyle
+        ? { ...activeStyle, _hover: { opacity: 0.82 } }
         : {
             borderColor: 'rgba(255,255,255,0.1)',
             color: 'rgba(255,255,255,0.28)',
@@ -407,8 +408,8 @@ const SmallNumInput = ({
     borderRadius="md"
     overflow="hidden"
     opacity={disabled ? 0.45 : 1}
-    transition="opacity 0.2s ease"
-    _focusWithin={disabled ? undefined : { borderColor: 'rgba(255,255,255,0.35)' }}
+    transition="opacity 0.2s ease, border-color 0.15s ease, box-shadow 0.15s ease"
+    _focusWithin={disabled ? undefined : { borderColor: 'rgba(255,255,255,0.35)', boxShadow: '0 0 0 2px rgba(238,29,82,0.12)' }}
   >
     <Box
       as="input"
@@ -455,8 +456,8 @@ const PanelTextInput = ({
     h="8"
     overflow="hidden"
     opacity={disabled ? 0.5 : 1}
-    transition="opacity 0.2s ease"
-    _focusWithin={disabled ? undefined : { borderColor: 'rgba(255,255,255,0.3)' }}
+    transition="opacity 0.2s ease, border-color 0.15s ease, box-shadow 0.15s ease"
+    _focusWithin={disabled ? undefined : { borderColor: 'rgba(255,255,255,0.3)', boxShadow: '0 0 0 2px rgba(238,29,82,0.12)' }}
   >
     <Box
       as="input"
@@ -1250,9 +1251,9 @@ export default function Live() {
             h="8"
             w="180px"
             overflow="hidden"
-            transition="border-color 0.15s ease"
+            transition="border-color 0.15s ease, box-shadow 0.15s ease"
             _hover={{ borderColor: 'rgba(255,255,255,0.22)' }}
-            _focusWithin={{ borderColor: 'brand.solid' }}
+            _focusWithin={{ borderColor: 'brand.solid', boxShadow: '0 0 0 3px rgba(238,29,82,0.15)' }}
           >
             <Box
               as="input"
@@ -1293,7 +1294,7 @@ export default function Live() {
                   borderColor: 'rgba(248,113,113,0.5)',
                   color: 'rgb(248,113,113)',
                   bg: 'rgba(248,113,113,0.06)',
-                  _hover: { bg: 'rgba(248,113,113,0.14)', borderColor: 'rgba(248,113,113,0.8)' }
+                  _hover: { bg: 'rgba(248,113,113,0.14)', borderColor: 'rgba(248,113,113,0.8)', transform: 'scale(1.03)' }
                 }
               : { colorPalette: 'brand' })}
           >
@@ -1494,7 +1495,7 @@ export default function Live() {
                     <Box
                       w="6px" h="6px" borderRadius="full" flexShrink={0}
                       bg={streamColor}
-                      style={connectStatus === 1 ? { boxShadow: `0 0 0 2px rgba(56,180,139,0.2)` } : undefined}
+                      style={connectStatus === 1 ? { animation: 'dotPulse 2s ease-in-out infinite' } : undefined}
                     />
                     <Text fontSize="11px" color="rgba(255,255,255,0.32)">
                       直播间弹幕流:
@@ -1508,7 +1509,7 @@ export default function Live() {
                     <Box
                       w="6px" h="6px" borderRadius="full" flexShrink={0}
                       bg={printerDotColor}
-                      style={printerStatus === 1 ? { boxShadow: '0 0 0 2px rgba(56,180,139,0.2)' } : undefined}
+                      style={printerStatus === 1 ? { animation: 'dotPulse 2s ease-in-out infinite' } : undefined}
                     />
                     <Text fontSize="11px" color="rgba(255,255,255,0.32)">打印机</Text>
                   </HStack>

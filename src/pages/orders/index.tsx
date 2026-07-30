@@ -257,7 +257,8 @@ export default function Orders() {
                     fontSize="12px"
                     cursor="pointer"
                     transition="all 0.15s"
-                    _hover={{ borderColor: 'rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.65)' }}
+                    _hover={isActive ? { opacity: 0.8 } : { borderColor: 'rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.65)' }}
+                    _active={{ transform: 'scale(0.94)', opacity: 0.75 }}
                     onClick={() => setStatusFilter(chip.key)}
                   >
                     {chip.label}
@@ -286,6 +287,7 @@ export default function Orders() {
               transition="all 0.15s"
               ml="auto"
               _hover={batchReprinting ? {} : { bg: 'rgba(246,165,58,0.18)', borderColor: 'rgba(246,165,58,0.5)' }}
+              _active={batchReprinting ? {} : { transform: 'scale(0.94)', opacity: 0.8 }}
               onClick={batchReprint}
             >
               {batchReprinting ? '补打中...' : `补打全部待打印 (${countPending})`}
@@ -311,6 +313,7 @@ export default function Orders() {
             ml={countPending > 0 ? undefined : 'auto'}
             flexShrink={0}
             _hover={loading ? {} : { borderColor: 'rgba(255,255,255,0.22)', color: 'rgba(255,255,255,0.85)', bg: 'rgba(255,255,255,0.05)' }}
+            _active={loading ? {} : { transform: 'scale(0.9)', opacity: 0.75 }}
             onClick={() => !loading && loadData(selectedDate)}
           >
             <RefreshCw size={13} />
@@ -383,8 +386,8 @@ export default function Orders() {
                   h="38px"
                   borderBottomWidth="1px"
                   borderColor="rgba(255,255,255,0.03)"
-                  transition="background 0.1s"
-                  _hover={{ bg: 'rgba(255,255,255,0.04)' }}
+                  transition="background 0.1s, transform 0.12s"
+                  _hover={{ bg: 'rgba(255,255,255,0.04)', transform: 'translateX(2px)' }}
                 >
                   <Box style={{ ...cellBase, width: COL.seq }} fontSize="12px" color="rgba(255,255,255,0.25)" fontVariantNumeric="tabular-nums">
                     {order.seq}
@@ -420,6 +423,7 @@ export default function Orders() {
                         opacity={reprintingIds.has(order.id) ? 0.35 : 1}
                         transition="all 0.15s"
                         _hover={reprintingIds.has(order.id) ? {} : { borderColor: 'rgba(255,255,255,0.28)', color: 'rgba(255,255,255,0.82)', bg: 'rgba(255,255,255,0.05)' }}
+                        _active={reprintingIds.has(order.id) ? {} : { transform: 'scale(0.9)', opacity: 0.75 }}
                         onClick={() => reprint(order)}
                       >
                         补打

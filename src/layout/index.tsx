@@ -26,7 +26,6 @@ function NavItem({
     <NavLink to={path} end={path === '/'} style={{ display: 'block', width: '100%' }}>
       {({ isActive }) => (
         <VStack
-          role="group"
           gap={1}
           w="full"
           h="64px"
@@ -37,7 +36,13 @@ function NavItem({
           _hover={{ color: 'brand.solid' }}
           transition="color 0.2s ease"
         >
-          <VStack gap={1} px={4} py={2} borderRadius="xl" alignSelf="center" bg="transparent" transition="all 0.2s ease">
+          <VStack
+            gap={1}
+            px={4}
+            py={2}
+            borderRadius="xl"
+            alignSelf="center"
+          >
             <Icon size={28} strokeWidth={1.8} />
             <Text fontSize="9px" fontWeight="500" lineHeight="1">
               {label}
@@ -49,6 +54,21 @@ function NavItem({
   )
 }
 
+const GLOBAL_KEYFRAMES = `
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(56,180,139,0.2); }
+  50%       { box-shadow: 0 0 0 5px rgba(56,180,139,0.06); }
+}
+`
+
 const dragStyle = { WebkitAppRegion: 'drag', cursor: 'default' } as React.CSSProperties
 const noDragStyle = { WebkitAppRegion: 'no-drag' } as React.CSSProperties
 
@@ -58,14 +78,15 @@ const Layout = () => {
   const isLive = location.pathname === '/live'
 
   return (
+    <>
+    <style>{GLOBAL_KEYFRAMES}</style>
     <Flex
       h="100vh"
       overflow="hidden"
       position="relative"
       background={[
-        'radial-gradient(ellipse 60% 50% at 95% 0%, rgba(238,29,82,0.18) 0%, transparent 70%)',
-        'radial-gradient(ellipse 55% 45% at 0% 105%, rgba(105,201,208,0.12) 0%, transparent 70%)',
-        'radial-gradient(ellipse 40% 35% at 42% 58%, rgba(238,29,82,0.05) 0%, transparent 65%)',
+        'radial-gradient(ellipse 60% 55% at 100% 0%, rgba(238,29,82,0.20) 0%, transparent 70%)',
+        'radial-gradient(ellipse 55% 50% at 0% 100%, rgba(105,201,208,0.14) 0%, transparent 70%)',
         '#08080f',
       ].join(', ')}
     >
@@ -126,7 +147,8 @@ const Layout = () => {
             justify="center"
             cursor="pointer"
             _hover={{ borderColor: 'brand.solid' }}
-            transition="border-color 0.15s ease"
+            _active={{ transform: 'scale(0.9)' }}
+            transition="border-color 0.15s ease, transform 0.12s ease"
           >
             <Text fontSize="14px">👤</Text>
           </Flex>
@@ -152,12 +174,19 @@ const Layout = () => {
           <Live />
         </Box>
         {!isLive && (
-          <Box h="full" w="full" overflow="auto">
+          <Box
+            key={location.pathname}
+            h="full"
+            w="full"
+            overflow="auto"
+            style={{ animation: 'pageEnter 0.2s cubic-bezier(0.25,0.46,0.45,0.94) both' }}
+          >
             <Outlet />
           </Box>
         )}
       </Box>
     </Flex>
+    </>
   )
 }
 
