@@ -535,19 +535,22 @@ function ProductPanel({
   isWorking,
   isConnected,
   totalMatched,
+  seqMode,
+  onSeqModeChange,
   onToggle,
   onMatchConfigChange
 }: {
   isWorking: boolean
   isConnected: boolean
   totalMatched: number
+  seqMode: SeqMode
+  onSeqModeChange: (mode: SeqMode) => void
   onToggle: () => void
   onMatchConfigChange: (cfg: MatchConfig) => void
 }) {
   const disabled = isWorking
 
   const [productName, setProductName] = useState('')
-  const [seqMode, setSeqMode] = useState<SeqMode>('round')
   const [rangeMin, setRangeMin] = useState('1')
   const [rangeMax, setRangeMax] = useState('999')
   const [matchFormats, setMatchFormats] = useState<FormatKey[]>(['digits', 'contains'])
@@ -634,7 +637,7 @@ function ProductPanel({
                   bg={seqMode === mode ? 'rgba(255,255,255,0.12)' : 'transparent'}
                   color={seqMode === mode ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.4)'}
                   userSelect="none"
-                  onClick={() => !disabled && setSeqMode(mode)}
+                  onClick={() => !disabled && onSeqModeChange(mode)}
                 >
                   {mode === 'round' ? '轮次序号' : '流水序号'}
                 </Box>
@@ -940,6 +943,7 @@ export default function Live() {
   const { settings: printerSettings, update: updatePrinterSettings } = usePrinterSettings()
   const [isWorking, setIsWorking] = useState(false)
   const [isPrinting, setIsPrinting] = useState(false)
+  const [seqMode, setSeqMode] = useState<SeqMode>('round')
   const [roomId, setRoomId] = useState('')
   const [liveInfo, setLiveInfo] = useState<LiveRoomInfo | null>(null)
   const [rows, setRows] = useState<CommentRow[]>([])
@@ -1441,9 +1445,11 @@ export default function Live() {
           isWorking={isPrinting}
           isConnected={isWorking}
           totalMatched={totalMatched}
+          seqMode={seqMode}
+          onSeqModeChange={setSeqMode}
           onToggle={() => {
             if (!isPrinting) {
-              orderSeqRef.current = 0
+              if (seqMode === 'round') orderSeqRef.current = 0
               createSession(roomIdRef.current, liveInfoRef.current?.nickname ?? '')
                 .then(id => {
                   sessionIdRef.current = id

@@ -34,7 +34,7 @@
 - **文件**：`src/pages/live/index.tsx`
 - **问题**：`limitEnabled / fastEnabled / antiDupEnabled / vipEnabled / runawayEnabled` 及其对应参数只存在组件本地 state，从未传入匹配引擎，用户配置的所有规则均被静默忽略。
 
-### 7. 轮次序号 / 流水序号切换无效
+### ~~7. 轮次序号 / 流水序号切换无效~~ ✅ 已修复
 - **文件**：`src/pages/live/index.tsx`
 - **问题**：`seqMode` 有 UI 切换但从未在业务逻辑中被读取，两种模式行为完全相同。
 
