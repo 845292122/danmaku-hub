@@ -68,16 +68,44 @@ pnpm tauri-build
 
 如果暂时不需要自动更新功能，可以在 `src-tauri/tauri.conf.json` 中移除 `plugins.updater` 配置，此时两个 Secret 留空即可（CI 不会报错）。
 
-### 触发发布
+### 每次发版流程
 
-打一个以 `v` 开头的 tag，Actions 会自动触发：
+**第一步：同步版本号**
+
+`package.json` 和 `src-tauri/tauri.conf.json` 中的 `version` 字段必须保持一致，手动改为新版本号（例如 `0.3.0`）：
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+# package.json
+"version": "0.3.0"
+
+# src-tauri/tauri.conf.json
+"version": "0.3.0"
 ```
 
-Actions 完成后会在 GitHub Releases 页面生成一个 **Draft**，检查无误后手动点击 **Publish release** 正式发布。
+**第二步：提交版本号变更**
+
+```bash
+git add package.json src-tauri/tauri.conf.json
+git commit -m "chore: bump version to 0.3.0"
+```
+
+**第三步：打 tag 并推送**
+
+tag 名称必须以 `v` 开头，与版本号对应：
+
+```bash
+git tag v0.3.0
+git push origin main
+git push origin v0.3.0
+```
+
+**第四步：等待 CI 构建**
+
+推送 tag 后 GitHub Actions 自动触发，在 macOS 和 Windows 上并行构建。构建完成后在仓库的 **Releases** 页面会出现一个 **Draft**。
+
+**第五步：发布**
+
+检查 Draft 中的安装包无误后，点击 **Edit → Publish release** 正式发布。
 
 ### 构建矩阵
 
