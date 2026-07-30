@@ -1,5 +1,7 @@
 import Database from '@tauri-apps/plugin-sql'
 
+const isElectronEnv = typeof window !== 'undefined' && !!(window as Window & { __IS_ELECTRON__?: boolean }).__IS_ELECTRON__
+
 let _dbPromise: Promise<Database> | null = null
 
 const DDL_STMTS = [
@@ -26,7 +28,26 @@ const DDL_STMTS = [
   `CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(session_id, print_status)`,
 ]
 
+/** Electron IPC shim: wraps window.electronAPI.db in a Database-like interface */
+const makeElectronDb = (): Database => {
+  const api = (window as Window & { electronAPI?: { db: { execute: (sql: string, params: unknown[]) => Promise<{ lastInsertRowid: number | bigint; changes: number }>; select: <T>(sql: string, params: unknown[]) => Promise<T[]> } } }).electronAPI!.db
+  return {
+    execute: (sql: string, values: unknown[] = []) =>
+      api.execute(sql, values).then(r => ({
+        lastInsertId: Number(r.lastInsertRowid),
+        rowsAffected: r.changes,
+      })),
+    select: <T>(sql: string, values: unknown[] = []) => api.select<T>(sql, values),
+    close: async () => {},
+    load: async () => makeElectronDb(),
+  } as unknown as Database
+}
+
 export function getDb(): Promise<Database> {
+  if (isElectronEnv) {
+    return Promise.resolve(makeElectronDb())
+  }
+
   if (!_dbPromise) {
     _dbPromise = (async () => {
       const db = await Database.load('sqlite:danmaku-hub.db')

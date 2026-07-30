@@ -121,7 +121,10 @@ const Layout = () => {
   }, [isLive])
 
   return (
-    <Flex h="100vh" overflow="hidden" bg="bg" position="relative">
+    <Flex direction="column" h="100vh" overflow="hidden" bg="bg" position="relative">
+      {/* Full-width titlebar drag zone — sits above all content, contains traffic lights */}
+      <Box w="full" h="36px" flexShrink={0} zIndex={2} style={dragStyle} />
+
       {/* Background gradient orbs */}
       <Box position="fixed" inset={0} zIndex={0} pointerEvents="none" overflow="hidden">
         {/* Red orb — top right */}
@@ -159,6 +162,7 @@ const Layout = () => {
         />
       </Box>
 
+      <Flex flex={1} overflow="hidden" position="relative">
       {/* Left Sidebar */}
       <Flex
         as="nav"
@@ -168,14 +172,13 @@ const Layout = () => {
         flexShrink={0}
         h="full"
         layerStyle="glass.sidebar"
-        py={4}
+        pt={2}
+        pb={4}
         px={3}
         gap={0}
         zIndex={1}
         position="relative"
       >
-        {/* macOS traffic light drag zone */}
-        <Box w="full" h="28px" flexShrink={0} mt={-4} style={dragStyle} />
         {/* Logo - black hole */}
         <Box mb={12} mt={0} w="36px" h="36px" borderRadius="full" overflow="hidden" flexShrink={0} boxShadow="0 0 0 1px rgba(255,255,255,0.08)">
           <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%', display: 'block' }}>
@@ -269,6 +272,7 @@ const Layout = () => {
           )}
         </AnimatePresence>
       </Box>
+      </Flex>
     </Flex>
   )
 }

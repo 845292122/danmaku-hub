@@ -1,4 +1,3 @@
-import { invoke } from '@tauri-apps/api/core'
 import type { PrintTemplate } from '~/core/templateStore'
 
 export interface PrinterConfig {
@@ -44,11 +43,11 @@ export function templateToRust(t: PrintTemplate): RustTemplate {
 }
 
 export function listSerialPorts(): Promise<string[]> {
-  return invoke<string[]>('list_serial_ports')
+  return window.electronAPI!.printer.listSerialPorts()
 }
 
 export function printerTest(config: PrinterConfig, template: RustTemplate): Promise<void> {
-  return invoke<void>('printer_test', { config, template })
+  return window.electronAPI!.printer.test(config, template)
 }
 
 export function printerPrintOrder(
@@ -56,5 +55,5 @@ export function printerPrintOrder(
   order: PrintOrderData,
   template: RustTemplate,
 ): Promise<void> {
-  return invoke<void>('printer_print_order', { config, order, template })
+  return window.electronAPI!.printer.printOrder(config, order, template)
 }

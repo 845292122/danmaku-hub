@@ -1,12 +1,13 @@
-import { isTauriProd } from './runtime';
+import { isElectron } from './runtime';
 import type { DyLiveInfo } from '@/core/dydanmaku';
 
 const loadHttp = async () => {
-  return isTauriProd() ? import('./tauri/http') : import('./browser/http');
+  if (isElectron()) return import('./electron/http');
+  return import('./browser/http');
 };
 
 export const getApiBase = (): string => {
-  return isTauriProd() ? 'https://live.douyin.com' : '/dylive';
+  return isElectron() ? 'https://live.douyin.com' : '/dylive';
 };
 
 export const fetchNativeLiveInfo = async (id: string): Promise<DyLiveInfo | null> => {

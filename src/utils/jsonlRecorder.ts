@@ -1,20 +1,10 @@
-import { invoke } from '@tauri-apps/api/core';
-import { isTauri } from '@/platform/runtime';
+import { isElectron } from '@/platform/runtime';
 
 export interface JsonlRecorderOptions {
   name: string;
   ext?: string;
   mimeType?: string;
   description?: string;
-}
-
-interface TauriRecordStartResult {
-  path: string;
-}
-
-interface TauriRecordStopResult {
-  path: string;
-  count: number;
 }
 
 const ensureExtension = (filename: string, ext: string) => (filename.endsWith(ext) ? filename : `${filename}${ext}`);
@@ -24,7 +14,7 @@ export class JsonlRecorder<T> {
   private queue: Promise<void> = Promise.resolve();
   private count = 0;
   private filename = '';
-  private mode: 'tauri' | 'fsa' | undefined;
+  private mode: 'electron' | 'fsa' | undefined;
 
   get isRecording() {
     return !!this.mode;
@@ -39,7 +29,7 @@ export class JsonlRecorder<T> {
   }
 
   static isSupported() {
-    return isTauri() || 'showSaveFilePicker' in window;
+    return isElectron() || 'showSaveFilePicker' in window;
   }
 
   async start(options: JsonlRecorderOptions) {
@@ -49,17 +39,14 @@ export class JsonlRecorder<T> {
     const ext = options.ext || '.jsonl';
     const suggestedName = ensureExtension(options.name, ext);
 
-    if (isTauri()) {
-      const result = await invoke<TauriRecordStartResult | null>('cast_record_start', {
-        suggestedName
-      });
+    if (isElectron()) {
+      const result = await window.electronAPI!.castRecord.start(suggestedName);
       if (!result) {
         const err = new Error('用户取消操作');
         err.name = 'AbortError';
         throw err;
       }
-
-      this.mode = 'tauri';
+      this.mode = 'electron';
       this.queue = Promise.resolve();
       this.count = 0;
       this.filename = result.path;
@@ -90,12 +77,9 @@ export class JsonlRecorder<T> {
     if (!mode || records.length === 0) return this.queue.then(() => this.count);
 
     const payload = `${records.map(record => JSON.stringify(record)).join('\n')}\n`;
-    if (mode === 'tauri') {
+    if (mode === 'electron') {
       this.queue = this.queue.then(async () => {
-        this.count = await invoke<number>('cast_record_write', {
-          lines: payload,
-          count: records.length
-        });
+        this.count = await window.electronAPI!.castRecord.write(payload, records.length);
       });
     } else {
       const writable = this.writable;
@@ -114,14 +98,14 @@ export class JsonlRecorder<T> {
     if (!mode) return this.count;
 
     this.mode = undefined;
-    if (mode === 'tauri') {
+    if (mode === 'electron') {
       let writeError: unknown;
       try {
         await this.queue;
       } catch (err) {
         writeError = err;
       }
-      const result = await invoke<TauriRecordStopResult | null>('cast_record_stop');
+      const result = await window.electronAPI!.castRecord.stop();
       if (result) {
         this.count = result.count;
         this.filename = result.path;

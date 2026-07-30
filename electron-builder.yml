@@ -1,0 +1,30 @@
+appId: com.danmakuhub.app
+productName: Danmaku Hub
+copyright: Copyright © 2024
+
+directories:
+  buildResources: build
+  output: dist-electron-app
+
+files:
+  - out
+  - node_modules
+  - package.json
+
+mac:
+  target:
+    - dmg
+  category: public.app-category.utilities
+  darkModeSupport: true
+  extendInfo:
+    NSPrincipalClass: NSApplication
+
+win:
+  target:
+    - nsis
+
+linux:
+  target:
+    - AppImage
+
+npmRebuild: true
