@@ -93,26 +93,29 @@ function checkFormat(content: string, key: FormatKey, keyword: string): string |
 export function matchMessage(content: string, opts: MatchOptions): MatchOutput {
   if (!content) return { matched: false, matchStr: '' }
 
-  // Format check: OR logic — any selected format can satisfy
-  let formatStr: string | null = null
-  if (opts.formats.size > 0) {
-    for (const key of opts.formats) {
-      const result = checkFormat(content, key, opts.keyword)
-      if (result !== null) {
-        formatStr = result
-        break
-      }
-    }
-    if (formatStr === null) return { matched: false, matchStr: '' }
+  // No formats selected → match everything, skip range check
+  if (opts.formats.size === 0) {
+    return { matched: true, matchStr: content }
   }
 
-  // Range check: AND with format result
-  const num = extractFirstNumber(formatStr ?? content)
+  // Format check: OR logic — any selected format can satisfy
+  let formatStr: string | null = null
+  for (const key of opts.formats) {
+    const result = checkFormat(content, key, opts.keyword)
+    if (result !== null) {
+      formatStr = result
+      break
+    }
+  }
+  if (formatStr === null) return { matched: false, matchStr: '' }
+
+  // Range check: only applies to the number extracted from the matched format string
+  const num = extractFirstNumber(formatStr)
   if (num !== null) {
     if (num < opts.rangeMin || num > opts.rangeMax) {
       return { matched: false, matchStr: '' }
     }
   }
 
-  return { matched: true, matchStr: formatStr ?? content }
+  return { matched: true, matchStr: formatStr }
 }
