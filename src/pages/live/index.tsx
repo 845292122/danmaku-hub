@@ -1011,6 +1011,7 @@ export default function Live() {
   const antiDupMapRef = useRef(new Map<string, number>())
   const pendingTimersRef = useRef(new Set<ReturnType<typeof setTimeout>>())
   const fastIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const resumePrintingRef = useRef(false)
   const roomIdRef = useRef(roomId)
   roomIdRef.current = roomId
   const liveInfoRef = useRef(liveInfo)
@@ -1165,9 +1166,6 @@ export default function Live() {
               matchStr,
               matchedAt,
             }).then(async (orderId) => {
-            // 回填 orderId 到对应行
-            setRows(prev => prev.map(r => r.msgId === msgId ? { ...r, orderId } : r))
-
             const s = printerSettingsRef.current
             if (s.printerEnabled && isPrinterConfigured(s)) {
               try {
@@ -1180,14 +1178,19 @@ export default function Live() {
                   matched_at: matchedAt,
                 }, s)
                 await updatePrintStatus(orderId, 'printed')
-                setRows(prev => prev.map(r => r.orderId === orderId ? { ...r, printStatus: 'printed' } : r))
+                // 打印成功：一次 map 同时回填 orderId + printStatus
+                setRows(prev => prev.map(r => r.msgId === msgId ? { ...r, orderId, printStatus: 'printed' } : r))
                 setTotalPrinted(n => n + 1)
                 setPrinterStatus(1)
               } catch {
+                // 打印失败：只回填 orderId，保留 pending 状态
+                setRows(prev => prev.map(r => r.msgId === msgId ? { ...r, orderId } : r))
                 setPrinterStatus(2)
                 setTotalPrintError(n => n + 1)
-                // 保留 pending，不修改 DB 状态
               }
+            } else {
+              // 未配置打印机：只回填 orderId
+              setRows(prev => prev.map(r => r.msgId === msgId ? { ...r, orderId } : r))
             }
           }).catch((err: unknown) => {
             console.error('[orderStore] insertOrder failed:', err)
@@ -1275,7 +1278,6 @@ export default function Live() {
       setConnectStatus(1)
       setIsWorking(true)
       startTimer()
-      toaster.success({ title: `连接成功 [${id}]`, duration: 3000 })
       if (info) {
         setLiveInfo({
           avatar: info.avatar,
@@ -1285,6 +1287,17 @@ export default function Live() {
           likes: 0,
           follows: 0
         })
+      }
+      // 上次因连接意外断开时正在打印，自动恢复
+      if (resumePrintingRef.current) {
+        resumePrintingRef.current = false
+        resetSessionCounters()
+        createSession(roomIdRef.current, productNameRef.current || (liveInfoRef.current?.nickname ?? ''))
+          .then(sid => { sessionIdRef.current = sid; setIsPrinting(true) })
+          .catch(() => {})
+        toaster.success({ title: `连接成功 [${id}] · 已自动恢复打印`, duration: 3000 })
+      } else {
+        toaster.success({ title: `连接成功 [${id}]`, duration: 3000 })
       }
     })
 
@@ -1297,6 +1310,8 @@ export default function Live() {
         code === DyDanmakuCloseCode.CONNECTING_ERROR ||
         code === DyDanmakuCloseCode.RECONNECT_FAILED ||
         code === DyDanmakuCloseCode.CANNOT_RECEIVE
+      // 意外断开且之前正在打印 → 下次连接自动恢复
+      resumePrintingRef.current = isError && isPrintingRef.current
       setConnectStatus(isError ? 2 : 3)
       setIsWorking(false)
       setIsPrinting(false)
