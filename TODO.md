@@ -30,7 +30,7 @@
 
 ## 业务逻辑未实现
 
-### 6. "打印规则"面板的 5 个开关全部无效
+### ~~6. "打印规则"面板的 5 个开关全部无效~~ ✅ 已修复（跑单提醒永久 disabled）
 - **文件**：`src/pages/live/index.tsx`
 - **问题**：`limitEnabled / fastEnabled / antiDupEnabled / vipEnabled / runawayEnabled` 及其对应参数只存在组件本地 state，从未传入匹配引擎，用户配置的所有规则均被静默忽略。
 

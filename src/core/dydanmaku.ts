@@ -148,6 +148,8 @@ export interface CastUser {
   avatar?: string;
   // 性别 0 | 1 | 2 => 未知 | 男 | 女
   gender?: number;
+  // 粉丝团等级，> 0 表示持有灯牌
+  fanLevel?: number;
 }
 
 export interface CastGift {
@@ -986,6 +988,7 @@ export class DyDanmaku {
       name: data.nickname,
       gender: data.gender,
       avatar: data.avatarThumb?.urlList?.[0],
+      fanLevel: data.fansClub?.data?.level ?? 0,
     };
   }
 

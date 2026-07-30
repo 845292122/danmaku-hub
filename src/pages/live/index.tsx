@@ -141,6 +141,17 @@ interface MatchConfig {
   keyword: string
 }
 
+interface PrintRulesConfig {
+  limitEnabled: boolean
+  limitCount: number
+  fastEnabled: boolean
+  fastSeconds: number
+  antiDupEnabled: boolean
+  antiDupSeconds: number
+  vipEnabled: boolean
+  vipDelay: number
+}
+
 // ── Display maps ──────────────────────────────────────────────────────────────
 
 const PRINT_STATUS_MAP: Record<PrintStatus, { label: string }> = {
@@ -545,6 +556,7 @@ function ProductPanel({
   onToggle,
   onMatchConfigChange,
   onProductNameChange,
+  onPrintRulesChange,
 }: {
   isWorking: boolean
   isConnected: boolean
@@ -554,6 +566,7 @@ function ProductPanel({
   onToggle: () => void
   onMatchConfigChange: (cfg: MatchConfig) => void
   onProductNameChange: (name: string) => void
+  onPrintRulesChange: (rules: PrintRulesConfig) => void
 }) {
   const disabled = isWorking
 
@@ -581,6 +594,19 @@ function ProductPanel({
       keyword
     })
   }, [matchFormats, rangeMin, rangeMax, keyword, onMatchConfigChange])
+
+  useEffect(() => {
+    onPrintRulesChange({
+      limitEnabled,
+      limitCount: parseInt(limitCount, 10) || 20,
+      fastEnabled,
+      fastSeconds: parseInt(fastSeconds, 10) || 30,
+      antiDupEnabled,
+      antiDupSeconds: parseInt(antiDupSeconds, 10) || 10,
+      vipEnabled,
+      vipDelay: parseInt(vipDelay, 10) || 5,
+    })
+  }, [limitEnabled, limitCount, fastEnabled, fastSeconds, antiDupEnabled, antiDupSeconds, vipEnabled, vipDelay, onPrintRulesChange])
 
   const toggleFormat = (id: FormatKey) => {
     if (disabled) return
@@ -782,7 +808,7 @@ function ProductPanel({
               desc="买家扣数后未付款时提示"
               enabled={runawayEnabled}
               onToggle={() => setRunawayEnabled(v => !v)}
-              disabled={disabled}
+              disabled={true}
             />
           </VStack>
 
@@ -975,6 +1001,16 @@ export default function Live() {
   const orderSeqRef = useRef(0)
   const printerSettingsRef = useRef(printerSettings)
   const productNameRef = useRef('')
+  const printRulesRef = useRef<PrintRulesConfig>({
+    limitEnabled: false, limitCount: 20,
+    fastEnabled: false, fastSeconds: 30,
+    antiDupEnabled: false, antiDupSeconds: 10,
+    vipEnabled: false, vipDelay: 5,
+  })
+  const printedCountRef = useRef(0)
+  const antiDupMapRef = useRef(new Map<string, number>())
+  const pendingTimersRef = useRef(new Set<ReturnType<typeof setTimeout>>())
+  const fastIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const roomIdRef = useRef(roomId)
   roomIdRef.current = roomId
   const liveInfoRef = useRef(liveInfo)
@@ -991,6 +1027,42 @@ export default function Live() {
   // Keep refs in sync with state
   useEffect(() => { isPrintingRef.current = isPrinting }, [isPrinting])
   useEffect(() => { printerSettingsRef.current = printerSettings }, [printerSettings])
+
+  // 快速过款 interval
+  const resetSessionCounters = useCallback(() => {
+    printedCountRef.current = 0
+    antiDupMapRef.current.clear()
+    pendingTimersRef.current.forEach(t => clearTimeout(t))
+    pendingTimersRef.current.clear()
+    setTotalMatched(0)
+    setTotalPrinted(0)
+    setTotalPrintError(0)
+  }, [])
+
+  useEffect(() => {
+    if (!isPrinting || !printRulesRef.current.fastEnabled) return
+    const ms = (printRulesRef.current.fastSeconds || 30) * 1000
+    fastIntervalRef.current = setInterval(async () => {
+      if (!isPrintingRef.current) return
+      const oldSession = sessionIdRef.current
+      if (oldSession !== null) {
+        closeSession(oldSession).catch(() => {})
+        sessionIdRef.current = null
+      }
+      resetSessionCounters()
+      if (seqMode === 'round') orderSeqRef.current = 0
+      try {
+        const id = await createSession(roomIdRef.current, productNameRef.current)
+        sessionIdRef.current = id
+      } catch { /* ignore */ }
+    }, ms)
+    return () => {
+      if (fastIntervalRef.current) {
+        clearInterval(fastIntervalRef.current)
+        fastIntervalRef.current = null
+      }
+    }
+  }, [isPrinting, resetSessionCounters, seqMode])
 
   const startTimer = useCallback(() => {
     timerSecondsRef.current = 0
@@ -1041,6 +1113,31 @@ export default function Live() {
         const seq = ++seqRef.current
         const matchedAt = Date.now()
         const msgId = msg.id
+        const userId = msg.user?.id ?? ''
+        const fanLevel = msg.user?.fanLevel ?? 0
+
+        // 打印规则过滤（仅对已匹配的消息生效）
+        if (result === 'matched' && sessionIdRef.current !== null) {
+          const rules = printRulesRef.current
+
+          // 限量抢单：已打数量达到上限，跳过
+          if (rules.limitEnabled && printedCountRef.current >= rules.limitCount) {
+            result = 'unmatched'
+          }
+
+          // 防止多打：同一用户在窗口期内已经匹配过，跳过
+          if (result === 'matched' && rules.antiDupEnabled && userId) {
+            const lastTs = antiDupMapRef.current.get(userId)
+            if (lastTs !== undefined && (matchedAt - lastTs) < rules.antiDupSeconds * 1000) {
+              result = 'unmatched'
+            }
+          }
+
+          if (result === 'matched') {
+            antiDupMapRef.current.set(userId, matchedAt)
+          }
+        }
+
         toAppend.push({
           seq,
           msgId,
@@ -1054,16 +1151,20 @@ export default function Live() {
         })
 
         if (result === 'matched' && sessionIdRef.current !== null) {
+          const rules = printRulesRef.current
           const orderSeq = ++orderSeqRef.current
-          insertOrder({
-            sessionId: sessionIdRef.current,
-            seq: orderSeq,
-            userId: msg.user?.id ?? '',
-            userName: nickname,
-            content,
-            matchStr,
-            matchedAt,
-          }).then(async (orderId) => {
+
+          const doInsertAndPrint = () => {
+            if (sessionIdRef.current === null) return
+            insertOrder({
+              sessionId: sessionIdRef.current,
+              seq: orderSeq,
+              userId,
+              userName: nickname,
+              content,
+              matchStr,
+              matchedAt,
+            }).then(async (orderId) => {
             // 回填 orderId 到对应行
             setRows(prev => prev.map(r => r.msgId === msgId ? { ...r, orderId } : r))
 
@@ -1091,6 +1192,20 @@ export default function Live() {
           }).catch((err: unknown) => {
             console.error('[orderStore] insertOrder failed:', err)
           })
+          }
+
+          // 灯牌优先：非灯牌用户延迟 N 秒后再打单，灯牌用户立即打
+          if (rules.vipEnabled && fanLevel === 0) {
+            const ms = (rules.vipDelay || 5) * 1000
+            const timer = setTimeout(() => {
+              pendingTimersRef.current.delete(timer)
+              doInsertAndPrint()
+            }, ms)
+            pendingTimersRef.current.add(timer)
+          } else {
+            doInsertAndPrint()
+          }
+          printedCountRef.current++
         }
 
         setTotalReceived(n => n + 1)
@@ -1505,13 +1620,12 @@ export default function Live() {
           seqMode={seqMode}
           onSeqModeChange={setSeqMode}
           onProductNameChange={name => { productNameRef.current = name }}
+          onPrintRulesChange={rules => { printRulesRef.current = rules }}
           onToggle={() => {
             if (!isPrinting) {
               if (seqMode === 'round') orderSeqRef.current = 0
-              setTotalMatched(0)
-              setTotalPrinted(0)
-              setTotalPrintError(0)
-              createSession(roomIdRef.current, liveInfoRef.current?.nickname ?? '')
+              resetSessionCounters()
+              createSession(roomIdRef.current, productNameRef.current || (liveInfoRef.current?.nickname ?? ''))
                 .then(id => {
                   sessionIdRef.current = id
                   setIsPrinting(true)
@@ -1527,6 +1641,8 @@ export default function Live() {
                 closeSession(sessionIdRef.current).catch(() => {})
                 sessionIdRef.current = null
               }
+              pendingTimersRef.current.forEach(t => clearTimeout(t))
+              pendingTimersRef.current.clear()
               setIsPrinting(false)
             }
           }}
