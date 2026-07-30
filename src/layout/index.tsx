@@ -1,8 +1,46 @@
 import { Box, Flex, Text, VStack } from '@chakra-ui/react'
 import { BarChart2Icon, PrinterIcon, RadioIcon, ReceiptIcon } from 'lucide-react'
-import React, { type ComponentType } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
+import React, { type ComponentType, useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigation } from 'react-router'
+import { GenericSkeleton, LiveSkeleton, OrdersSkeleton, PrintSkeleton } from '~/components/Skeleton'
 import Live from '~/pages/live'
+
+const SKELETON_MAP: Record<string, React.ComponentType> = {
+  '/orders': OrdersSkeleton,
+  '/print': PrintSkeleton,
+}
+
+function PageWithSkeleton({ path }: { path: string }) {
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    setReady(false)
+    const id = setTimeout(() => setReady(true), 220)
+    return () => clearTimeout(id)
+  }, [path])
+
+  const SkeletonComp = SKELETON_MAP[path] ?? GenericSkeleton
+
+  return (
+    <div style={{ position: 'relative', height: '100%', width: '100%' }}>
+      <Outlet />
+      <AnimatePresence>
+        {!ready && (
+          <motion.div
+            key="skeleton"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{ position: 'absolute', inset: 0, zIndex: 10, background: '#08080f' }}
+          >
+            <SkeletonComp />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
 
 const SIDEBAR_W = '88px'
 
@@ -37,7 +75,20 @@ function NavItem({
           _hover={{ color: 'brand.solid' }}
           transition="color 0.2s ease"
         >
-          <VStack gap={1} px={4} py={2} borderRadius="xl" alignSelf="center" bg="transparent" transition="all 0.2s ease">
+          <VStack gap={1} px={4} py={2} borderRadius="xl" alignSelf="center" bg="transparent" position="relative">
+            {isActive && (
+              <motion.div
+                layoutId="nav-active-pill"
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  borderRadius: 12,
+                  background: 'rgba(238,29,82,0.12)',
+                  border: '1px solid rgba(238,29,82,0.20)',
+                }}
+                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+              />
+            )}
             <Icon size={28} strokeWidth={1.8} />
             <Text fontSize="9px" fontWeight="500" lineHeight="1">
               {label}
@@ -56,6 +107,18 @@ const Layout = () => {
   const navigation = useNavigation()
   const location = useLocation()
   const isLive = location.pathname === '/live'
+  const [showLiveSkeleton, setShowLiveSkeleton] = useState(false)
+  const prevIsLiveRef = useRef(false)
+
+  useEffect(() => {
+    if (isLive && !prevIsLiveRef.current) {
+      setShowLiveSkeleton(true)
+      const id = setTimeout(() => setShowLiveSkeleton(false), 220)
+      prevIsLiveRef.current = isLive
+      return () => clearTimeout(id)
+    }
+    prevIsLiveRef.current = isLive
+  }, [isLive])
 
   return (
     <Flex h="100vh" overflow="hidden" bg="bg" position="relative">
@@ -175,14 +238,36 @@ const Layout = () => {
           />
         )}
         {/* Live always mounted to preserve WebSocket connection across navigation */}
-        <Box display={isLive ? 'block' : 'none'} h="full" w="full" overflow="hidden">
+        <Box display={isLive ? 'block' : 'none'} h="full" w="full" overflow="hidden" position="relative">
           <Live />
+          <AnimatePresence>
+            {showLiveSkeleton && (
+              <motion.div
+                key="live-skeleton"
+                initial={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                style={{ position: 'absolute', inset: 0, zIndex: 10, background: '#08080f' }}
+              >
+                <LiveSkeleton />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </Box>
-        {!isLive && (
-          <Box h="full" w="full" overflow="auto">
-            <Outlet />
-          </Box>
-        )}
+        <AnimatePresence initial={false}>
+          {!isLive && (
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.02 }}
+              transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+              style={{ height: '100%', width: '100%', overflow: 'auto', position: 'absolute', inset: 0 }}
+            >
+              <PageWithSkeleton path={location.pathname} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </Box>
     </Flex>
   )

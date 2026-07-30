@@ -148,14 +148,14 @@ const PRINT_STATUS_MAP: Record<PrintStatus, { label: string; color: string }> = 
 
 // ── TableVirtuoso slot components (stable, outside component) ─────────────────
 
-type VirtuosoContext = { newestSeq: number | null }
+type VirtuosoContext = { newestSeq: number | null; batchMap: Map<number, number> }
 type VirtuosoTableProps = React.TableHTMLAttributes<HTMLTableElement> & { style?: React.CSSProperties }
 type VirtuosoRowProps = React.HTMLAttributes<HTMLTableRowElement> & { item: CommentRow; context?: VirtuosoContext }
 
 const ROW_ENTER_CSS = `@keyframes rowEnter {
-  0%   { opacity: 0; transform: translateY(-6px); background-color: rgba(74,222,128,0.10); }
-  40%  { opacity: 1; transform: translateY(0);    background-color: rgba(74,222,128,0.07); }
-  100% { opacity: 1; transform: translateY(0);    background-color: transparent; }
+  0%   { opacity: 0; transform: translateY(-10px); background-color: rgba(74,222,128,0.12); }
+  45%  { opacity: 1; transform: translateY(0);     background-color: rgba(74,222,128,0.08); }
+  100% { opacity: 1; transform: translateY(0);     background-color: transparent; }
 }`
 
 const VirtuosoTable = ({ style, ...props }: VirtuosoTableProps) => (
@@ -178,14 +178,15 @@ const VirtuosoTableBody = React.forwardRef<HTMLTableSectionElement, React.HTMLAt
 VirtuosoTableBody.displayName = 'VirtuosoTableBody'
 
 const VirtuosoTableRow = ({ item, context, ...props }: VirtuosoRowProps) => {
-  const isNew = context?.newestSeq != null && item.seq === context.newestSeq
+  const batchIdx = context?.batchMap?.get(item.seq)
+  const delay = batchIdx != null ? batchIdx * 30 : 0
   return (
     <Table.Row
       css={{
         '& td': { borderColor: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.7)', fontSize: '13px' },
         '&:hover td': { bg: 'rgba(255,255,255,0.03)' }
       }}
-      style={isNew ? { animation: 'rowEnter 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards' } : undefined}
+      style={batchIdx != null ? { animation: `rowEnter 0.45s ${delay}ms cubic-bezier(0.22, 1, 0.36, 1) both` } : undefined}
       {...props}
     />
   )
@@ -941,6 +942,7 @@ export default function Live() {
   const [liveInfo, setLiveInfo] = useState<LiveRoomInfo | null>(null)
   const [rows, setRows] = useState<CommentRow[]>([])
   const [newestSeq, setNewestSeq] = useState<number | null>(null)
+  const [batchMap, setBatchMap] = useState<Map<number, number>>(new Map())
   const [matchFilter, setMatchFilter] = useState<'all' | MatchResult>('all')
   const [printFilter, setPrintFilter] = useState<'all' | PrintStatus>('all')
   const [connectStatus, setConnectStatus] = useState<0 | 1 | 2 | 3>(0)
@@ -1080,7 +1082,10 @@ export default function Live() {
 
     if (toAppend.length > 0) {
       setNewestSeq(toAppend[0].seq)
+      const map = new Map(toAppend.map((r, i) => [r.seq, i] as [number, number]))
+      setBatchMap(map)
       setRows(prev => [...toAppend, ...prev].slice(0, MAX_ROWS))
+      setTimeout(() => setBatchMap(new Map()), 800)
     }
   }, [])
 
@@ -1192,7 +1197,7 @@ export default function Live() {
     })
   }, [rows, matchFilter, printFilter])
 
-  const virtuosoContext = useMemo<VirtuosoContext>(() => ({ newestSeq }), [newestSeq])
+  const virtuosoContext = useMemo<VirtuosoContext>(() => ({ newestSeq, batchMap }), [newestSeq, batchMap])
 
   return (
     <Flex direction="column" p={4} gap={3} h="full">

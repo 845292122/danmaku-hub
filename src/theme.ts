@@ -181,7 +181,7 @@ const config = defineConfig({
     },
     'button, [role="button"], select, [data-scope="select"] [data-part="trigger"]': {
       cursor: 'pointer'
-    }
+    },
   }
 })
 

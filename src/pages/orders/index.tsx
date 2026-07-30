@@ -1,5 +1,6 @@
 import { Box, Flex, HStack, Text } from '@chakra-ui/react'
 import { RefreshCw } from 'lucide-react'
+import { motion } from 'motion/react'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DatePicker from '~/components/DatePicker'
 import { cspNonce } from '~/utils/cspNonce'
@@ -14,6 +15,14 @@ import {
 // ── Constants ─────────────────────────────────────────────────
 
 const PAGE_SIZE = 50
+
+const rowVariants = {
+  hidden: { opacity: 0, y: 14 },
+  visible: (i: number) => ({
+    opacity: 1, y: 0,
+    transition: { duration: 0.32, delay: i * 0.05, ease: 'easeOut' as const }
+  })
+}
 
 type StatusFilter = 'all' | 'pending' | 'printed' | 'failed'
 
@@ -373,9 +382,15 @@ export default function Orders() {
               </Flex>
 
               {/* Rows */}
-              {pagedOrders.map(order => (
-                <Flex
+              {pagedOrders.map((order, i) => (
+                <motion.div
                   key={order.id}
+                  variants={rowVariants}
+                  initial="hidden"
+                  animate="visible"
+                  custom={i}
+                >
+                <Flex
                   align="center"
                   px={4}
                   h="38px"
@@ -425,6 +440,7 @@ export default function Orders() {
                     )}
                   </Flex>
                 </Flex>
+                </motion.div>
               ))}
             </>
           )}
