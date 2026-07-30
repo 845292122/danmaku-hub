@@ -4,13 +4,13 @@ import Orders from '~/pages/orders'
 import Print from '~/pages/print'
 import { ROUTER } from '~/types/route'
 import { Navigate } from 'react-router'
-import checkAuth from '../helper/checkAuth'
+// import checkAuth from '../helper/checkAuth'
 import ErrorPage from '../helper/ErrorPage'
 
 const baseRoutes: Array<ROUTER.RouteType> = [
   {
     element: <Layout />,
-    loader: checkAuth,
+    // loader: checkAuth,
     errorElement: <ErrorPage />,
     children: [
       {
