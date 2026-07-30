@@ -1554,13 +1554,13 @@ export default function Live() {
       })()}
       <Toaster toaster={toaster}>
         {(toast) => (
-          <ToastRoot maxW="260px" w="auto" minW="0">
+          <ToastRoot maxW="260px" w="auto" minW="0" py={2} px={3} pr={7}>
             <ToastIndicator />
             <Stack gap={0.5} flex={1} minW={0}>
               {toast.title && <ToastTitle fontSize="13px">{toast.title as React.ReactNode}</ToastTitle>}
               {toast.description && <ToastDescription fontSize="12px">{toast.description as React.ReactNode}</ToastDescription>}
             </Stack>
-            <ToastCloseTrigger />
+            <ToastCloseTrigger position="absolute" top={1.5} right={1.5} />
           </ToastRoot>
         )}
       </Toaster>

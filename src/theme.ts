@@ -178,6 +178,9 @@ const config = defineConfig({
       bg: 'bg',
       color: 'fg',
       fontFamily: 'body'
+    },
+    'button, [role="button"], select, [data-scope="select"] [data-part="trigger"]': {
+      cursor: 'pointer'
     }
   }
 })
