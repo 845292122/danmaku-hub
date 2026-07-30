@@ -452,22 +452,19 @@ function FieldRow({
   onToggleVisible,
   onToggleBold,
   onSetAlign,
-  onDragStart,
-  onDragOver,
-  onDrop,
-  isDragOver,
+  onGripPointerDown,
+  isDragging,
 }: {
   field: TemplateField
   onToggleVisible: () => void
   onToggleBold: () => void
   onSetAlign: (a: 'left' | 'center' | 'right') => void
-  onDragStart: () => void
-  onDragOver: (e: React.DragEvent) => void
-  onDrop: () => void
-  isDragOver: boolean
+  onGripPointerDown: (e: React.PointerEvent) => void
+  isDragging: boolean
 }) {
   return (
     <Box
+      data-field-row="true"
       display="flex"
       alignItems="center"
       gap={2}
@@ -475,14 +472,12 @@ function FieldRow({
       px={1.5}
       borderRadius="5px"
       borderWidth="1px"
-      borderColor={isDragOver ? 'rgba(255,255,255,0.2)' : 'transparent'}
-      bg={isDragOver ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.02)'}
-      transition="background 0.1s, border-color 0.1s"
-      _hover={{ bg: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.06)' }}
-      draggable
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDrop={onDrop}
+      borderColor="transparent"
+      bg={isDragging ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.02)'}
+      opacity={isDragging ? 0.4 : 1}
+      transition="background 0.1s, opacity 0.1s"
+      _hover={{ bg: isDragging ? undefined : 'rgba(255,255,255,0.04)', borderColor: isDragging ? undefined : 'rgba(255,255,255,0.06)' }}
+      userSelect="none"
     >
       {/* drag handle */}
       <Box
@@ -491,7 +486,8 @@ function FieldRow({
         flexShrink={0}
         display="flex"
         alignItems="center"
-        css={{ '&:active': { cursor: 'grabbing' } }}
+        onPointerDown={onGripPointerDown}
+        style={{ touchAction: 'none' }}
       >
         <GripVertical size={14} />
       </Box>
@@ -582,8 +578,11 @@ function FieldRow({
 
 function TemplateEditor({ template }: { template: PrintTemplate }) {
   const { updateTemplate } = usePrinterSettings()
+  const dragIdxRef = useRef<number | null>(null)
+  const insertIdxRef = useRef<number | null>(null)
+  const listRef = useRef<HTMLDivElement | null>(null)
   const [dragIdx, setDragIdx] = useState<number | null>(null)
-  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null)
+  const [insertIdx, setInsertIdx] = useState<number | null>(null)
 
   const updateField = useCallback(
     (fieldIdx: number, patch: Partial<TemplateField>) => {
@@ -593,22 +592,44 @@ function TemplateEditor({ template }: { template: PrintTemplate }) {
     [template, updateTemplate],
   )
 
-  const handleDrop = useCallback(
-    (targetIdx: number) => {
-      if (dragIdx === null || dragIdx === targetIdx) {
-        setDragIdx(null)
-        setDragOverIdx(null)
-        return
+  const handleGripPointerDown = useCallback((idx: number, e: React.PointerEvent) => {
+    e.preventDefault()
+    dragIdxRef.current = idx
+    insertIdxRef.current = null
+    setDragIdx(idx)
+    setInsertIdx(null)
+
+    const onMove = (ev: PointerEvent) => {
+      if (!listRef.current) return
+      const rows = Array.from(listRef.current.querySelectorAll<HTMLElement>('[data-field-row]'))
+      let newIdx = rows.length
+      for (let j = 0; j < rows.length; j++) {
+        const rect = rows[j].getBoundingClientRect()
+        if (ev.clientY < rect.top + rect.height / 2) { newIdx = j; break }
       }
-      const fields = [...template.fields]
-      const [moved] = fields.splice(dragIdx, 1)
-      fields.splice(targetIdx, 0, moved)
-      updateTemplate(template.id, { fields })
+      insertIdxRef.current = newIdx
+      setInsertIdx(newIdx)
+    }
+
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+      const src = dragIdxRef.current
+      const dst = insertIdxRef.current
+      dragIdxRef.current = null
+      insertIdxRef.current = null
       setDragIdx(null)
-      setDragOverIdx(null)
-    },
-    [dragIdx, template, updateTemplate],
-  )
+      setInsertIdx(null)
+      if (src === null || dst === null || dst === src || dst === src + 1) return
+      const fields = [...template.fields]
+      const [moved] = fields.splice(src, 1)
+      fields.splice(dst > src ? dst - 1 : dst, 0, moved)
+      updateTemplate(template.id, { fields })
+    }
+
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+  }, [template, updateTemplate])
 
   const previewLines = useMemo(() => buildPreviewLines(template), [template])
 
@@ -646,20 +667,25 @@ function TemplateEditor({ template }: { template: PrintTemplate }) {
           </Box>
           <Box py={2}>
             <SectionLabel hint="（拖动调整顺序）">打印字段</SectionLabel>
-            <Stack gap={0.5}>
+            <Stack gap={0.5} ref={listRef}>
               {template.fields.map((field, i) => (
-                <FieldRow
-                  key={field.id}
-                  field={field}
-                  isDragOver={dragOverIdx === i}
-                  onToggleVisible={() => updateField(i, { visible: !field.visible })}
-                  onToggleBold={() => updateField(i, { bold: !field.bold })}
-                  onSetAlign={a => updateField(i, { align: a })}
-                  onDragStart={() => setDragIdx(i)}
-                  onDragOver={e => { e.preventDefault(); setDragOverIdx(i) }}
-                  onDrop={() => handleDrop(i)}
-                />
+                <React.Fragment key={field.id}>
+                  {insertIdx === i && dragIdx !== null && dragIdx !== i && dragIdx !== i - 1 && (
+                    <Box h="2px" borderRadius="full" bg="rgba(238,29,82,0.7)" mx={1} flexShrink={0} />
+                  )}
+                  <FieldRow
+                    field={field}
+                    onToggleVisible={() => updateField(i, { visible: !field.visible })}
+                    onToggleBold={() => updateField(i, { bold: !field.bold })}
+                    onSetAlign={a => updateField(i, { align: a })}
+                    onGripPointerDown={e => handleGripPointerDown(i, e)}
+                    isDragging={dragIdx === i}
+                  />
+                </React.Fragment>
               ))}
+              {insertIdx === template.fields.length && dragIdx !== null && (
+                <Box h="2px" borderRadius="full" bg="rgba(238,29,82,0.7)" mx={1} flexShrink={0} />
+              )}
             </Stack>
           </Box>
         </Stack>
