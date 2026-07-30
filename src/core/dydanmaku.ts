@@ -444,7 +444,7 @@ export class DyDanmaku {
   // 心跳阈值
   // 如果 heartbeatDuration ms 内心跳次数大于等于该值，证明消息接收出错
   // 即 如果 10000 ms 内都没接收到新消息，证明消息接收出错
-  private downgradePingCount: number = 2;
+  private downgradePingCount: number = 5;
 
   private pingTimer: ReturnType<typeof setTimeout> | undefined = void 0;
 
@@ -694,10 +694,10 @@ export class DyDanmaku {
       if (this.ws && this.ws.readyState === this.ws.OPEN) {
         this.ws.send(ack);
       } else {
-        // 重连
         CLog.error(`ACK发送异常 => 直播间[${this.roomNum}]已关闭`);
+        // cursor 已由 setCursor 更新，在 _afterClose 清空前保存
         this._afterClose();
-        // this.reconnect();
+        this.reconnect();
       }
     }
     // 处理消息体
@@ -740,7 +740,8 @@ export class DyDanmaku {
     }
     this.wsRoomStatus = WSRoomStatus.RECONNECTING;
     this.emitter.emit("reconnecting", this.reconnectCount);
-    this._connect(opts);
+    const delay = Math.pow(2, this.reconnectCount - 1) * 1000; // 1s, 2s, 4s
+    setTimeout(() => { this.state && this._connect(opts); }, delay);
   }
 
   /**
