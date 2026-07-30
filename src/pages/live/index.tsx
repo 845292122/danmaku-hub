@@ -534,11 +534,13 @@ const ToggleRow = ({
 function ProductPanel({
   isWorking,
   isConnected,
+  totalMatched,
   onToggle,
   onMatchConfigChange
 }: {
   isWorking: boolean
   isConnected: boolean
+  totalMatched: number
   onToggle: () => void
   onMatchConfigChange: (cfg: MatchConfig) => void
 }) {
@@ -806,7 +808,7 @@ function ProductPanel({
                   lineHeight="1"
                   transition="color 0.3s ease"
                 >
-                  {isWorking ? '42' : '—'}
+                  {isWorking ? totalMatched : '—'}
                 </Text>
                 <Text fontSize="11px" color="rgba(255,255,255,0.3)" fontWeight="500">
                   扣中
@@ -1438,6 +1440,7 @@ export default function Live() {
         <ProductPanel
           isWorking={isPrinting}
           isConnected={isWorking}
+          totalMatched={totalMatched}
           onToggle={() => {
             if (!isPrinting) {
               orderSeqRef.current = 0
