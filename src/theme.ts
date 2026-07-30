@@ -82,23 +82,23 @@ const config = defineConfig({
       },
       'glass': {
         bg: 'rgba(255,255,255,0.04)',
-        backdropFilter: 'blur(18px) saturate(160%)',
-        WebkitBackdropFilter: 'blur(18px) saturate(160%)',
+        backdropFilter: 'blur(12px) saturate(150%)',
+        WebkitBackdropFilter: 'blur(12px) saturate(150%)',
         borderWidth: '1px',
         borderColor: 'rgba(255,255,255,0.08)',
         borderRadius: 'xl'
       },
       'glass.sidebar': {
-        bg: 'rgba(12,12,24,0.68)',
-        backdropFilter: 'blur(28px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+        bg: 'rgba(12,12,24,0.72)',
+        backdropFilter: 'blur(20px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(160%)',
         borderRightWidth: '1px',
         borderRightColor: 'rgba(255,255,255,0.06)'
       },
       'glass.card': {
         bg: 'rgba(255,255,255,0.04)',
-        backdropFilter: 'blur(16px) saturate(150%)',
-        WebkitBackdropFilter: 'blur(16px) saturate(150%)',
+        backdropFilter: 'blur(12px) saturate(150%)',
+        WebkitBackdropFilter: 'blur(12px) saturate(150%)',
         borderWidth: '1px',
         borderColor: 'rgba(255,255,255,0.07)',
         borderRadius: 'xl',

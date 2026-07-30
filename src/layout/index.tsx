@@ -58,44 +58,17 @@ const Layout = () => {
   const isLive = location.pathname === '/live'
 
   return (
-    <Flex h="100vh" overflow="hidden" bg="bg" position="relative">
-      {/* Background gradient orbs */}
-      <Box position="fixed" inset={0} zIndex={0} pointerEvents="none" overflow="hidden">
-        {/* Red orb — top right */}
-        <Box
-          position="absolute"
-          top="-15%"
-          right="-8%"
-          w="55vw"
-          h="55vw"
-          borderRadius="full"
-          background="radial-gradient(circle, rgba(238,29,82,0.22) 0%, transparent 65%)"
-          style={{ filter: 'blur(72px)' }}
-        />
-        {/* Cyan orb — bottom left */}
-        <Box
-          position="absolute"
-          bottom="-20%"
-          left="-5%"
-          w="50vw"
-          h="50vw"
-          borderRadius="full"
-          background="radial-gradient(circle, rgba(105,201,208,0.14) 0%, transparent 65%)"
-          style={{ filter: 'blur(90px)' }}
-        />
-        {/* Faint red center accent */}
-        <Box
-          position="absolute"
-          top="40%"
-          left="30%"
-          w="35vw"
-          h="35vw"
-          borderRadius="full"
-          background="radial-gradient(circle, rgba(238,29,82,0.05) 0%, transparent 60%)"
-          style={{ filter: 'blur(60px)' }}
-        />
-      </Box>
-
+    <Flex
+      h="100vh"
+      overflow="hidden"
+      position="relative"
+      background={[
+        'radial-gradient(ellipse 60% 50% at 95% 0%, rgba(238,29,82,0.18) 0%, transparent 70%)',
+        'radial-gradient(ellipse 55% 45% at 0% 105%, rgba(105,201,208,0.12) 0%, transparent 70%)',
+        'radial-gradient(ellipse 40% 35% at 42% 58%, rgba(238,29,82,0.05) 0%, transparent 65%)',
+        '#08080f',
+      ].join(', ')}
+    >
       {/* Left Sidebar */}
       <Flex
         as="nav"

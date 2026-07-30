@@ -267,30 +267,7 @@ export default function Orders() {
             </HStack>
           </HStack>
 
-          {/* Refresh */}
-          <Box
-            as="button"
-            w="30px"
-            h="30px"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            borderRadius="6px"
-            borderWidth="1px"
-            borderColor="rgba(255,255,255,0.1)"
-            bg="transparent"
-            color="rgba(255,255,255,0.4)"
-            cursor={loading ? 'not-allowed' : 'pointer'}
-            opacity={loading ? 0.4 : 1}
-            transition="all 0.15s"
-            title="刷新"
-            _hover={loading ? {} : { borderColor: 'rgba(255,255,255,0.22)', color: 'rgba(255,255,255,0.85)', bg: 'rgba(255,255,255,0.05)' }}
-            onClick={() => !loading && loadData(selectedDate)}
-          >
-            <RefreshCw size={13} />
-          </Box>
-
-          {/* Batch reprint */}
+          {/* Batch reprint + Refresh — pinned to far right */}
           {countPending > 0 && (
             <Box
               as="button"
@@ -307,12 +284,37 @@ export default function Orders() {
               whiteSpace="nowrap"
               flexShrink={0}
               transition="all 0.15s"
+              ml="auto"
               _hover={batchReprinting ? {} : { bg: 'rgba(246,165,58,0.18)', borderColor: 'rgba(246,165,58,0.5)' }}
               onClick={batchReprint}
             >
               {batchReprinting ? '补打中...' : `补打全部待打印 (${countPending})`}
             </Box>
           )}
+
+          <Box
+            as="button"
+            w="30px"
+            h="30px"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            borderRadius="6px"
+            borderWidth="1px"
+            borderColor="rgba(255,255,255,0.1)"
+            bg="transparent"
+            color="rgba(255,255,255,0.4)"
+            cursor={loading ? 'not-allowed' : 'pointer'}
+            opacity={loading ? 0.4 : 1}
+            transition="all 0.15s"
+            title="刷新"
+            ml={countPending > 0 ? undefined : 'auto'}
+            flexShrink={0}
+            _hover={loading ? {} : { borderColor: 'rgba(255,255,255,0.22)', color: 'rgba(255,255,255,0.85)', bg: 'rgba(255,255,255,0.05)' }}
+            onClick={() => !loading && loadData(selectedDate)}
+          >
+            <RefreshCw size={13} />
+          </Box>
         </Flex>
 
         {/* Summary strip */}
